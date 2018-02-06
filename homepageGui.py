@@ -11,8 +11,17 @@ class Application(Frame):
 	def clear_songs(self):
 		print "Clear!"
 		
-	def draw_circle(self):
-		print "Draw Circle"
+	def import_text(self):
+		print "Import text!"
+		
+	def export_text(self):
+		print "Export text!"
+		
+	def export_gmusic(self):
+		print "Export playlist!"
+		
+	def scrape(self):
+		print "Webscrape!"
 		
 	def createWidgets(self):
 	
