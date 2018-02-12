@@ -15,15 +15,32 @@ from helperFuncs import timeObject
 from songInfo import scrapedSongInfo
 
 import re
+import urllib2
+from bs4 import BeautifulSoup
 
 
 
 
 
-#Program only returns a single song name
+#full list of functions and code for parsing any npr station's schedule
 
-#just proof of concept for webscraping from JPR's website
 
+def parseListLabel(listName, label):
+	parsedList = list()
+	for element in listName:
+		if label in element:
+			parsedList.append(element.replace(label, ''))
+
+	return parsedList
+
+def findElementClass(elementTag, className):
+	print className
+	elements = soup.find_all(elementTag,  {'class':className})
+	content = list()
+	for element in elements:
+		content.append(element.text)
+
+	return content
 
 
 def getElementField(elementTag, className):
@@ -61,7 +78,9 @@ def trimListTime(scrapedSongList, beginTime, endTime):
 	endTimeObject.stringToTime(endTime)
 
 
+
 	trimmedScrapedSongList = list()
+
 
 
 	for song in scrapedSongList:
@@ -72,95 +91,74 @@ def trimListTime(scrapedSongList, beginTime, endTime):
 
 		
 
-		if( not timeObject.beforeTime(songTimeObject, beginTimeObject)):
+		if( not timeObject.beforeTime(songTimeObject, beginTimeObject) and not timeObject.afterTime(songTimeObject, endTimeObject)):
 
-			scrapedSongList.append(song)
-
-
-
-	#songTimeObject = timeObject()
-
-	#songTimeObject.stringToTime(scrapedSongList[0].songTime)
-
-	#if(timeObject.beforeTime(songTimeObject, beginTimeObject)):
-
-		#scrapedSongList.remove(scrapedSongList[0])
-
-		#print "test"
+			trimmedScrapedSongList.append(song)
 
 
 
-def nprByDateTime(scrapeDate, beginTime, endTime):
-
-	print "test"
-
-
-driver = webdriver.PhantomJS()
-
-driver.get('http://composer.nprstations.org/widgets/iframe/daily.html?station=520a4969e1c85ef575dd2484')
-
-driver.save_screenshot('screen.png')
+	return trimmedScrapedSongList
 
 
 
 
 
-time.sleep(3)
+def nprByTime(beginTime, endTime):
 
-songTimeList =  getElementsField('li', 'whatson-startTime')
+	songTimeList =  findElementClass('li', '\\"whatson-startTime\\"')
 
-songNameList = getElementsField('div', 'song-data truncate')
+	songDataList = findElementClass('div', '\\"label\\"')
 
-songArtistList = getElementsField('div', 'song-data')
-
-
-
-
-
-scrapedSongList = list()
+	songArtistList = parseListLabel(songDataList, 'ARTIST:')
+	songNameList = parseListLabel(songDataList, 'TITLE:')
 
 
 
-i = 0
-
-for times in songTimeList:
-
-	song = scrapedSongInfo(songNameList[i], songArtistList[i], songTimeList[i])
-
-	scrapedSongList.append(song)
-
-	i += 1
+	scrapedSongList = list()
 
 
 
-trimListTime(scrapedSongList, '2:30AM', '9:30PM')
+	i = 0
 
-print len(songTimeList)
+	for times in songTimeList:
+
+		song = scrapedSongInfo(songNameList[i], songArtistList[i], songTimeList[i])
+
+		scrapedSongList.append(song)
+
+		i += 1
 
 
 
-for song in scrapedSongList:
-
-	print(song.toString())
-
-
-
-	
+	scrapedSongList = trimListTime(scrapedSongList, beginTime, endTime)
 
 
 
 
 
-#p_element = driver.find_element_by_id('nprds_widget')
-
-#elem = p_element.find_element_by_xpath("//*")
-
-#html_content = elem.get_attribute("outerHTML")
 
 
+	for song in scrapedSongList:
 
-#print(html_content)
+		print(song.toString())
 
-#p_element = driver.find_element_by_xpath('//div[@id="episodes_container"]//div[@id="episodes_container_content"]//div[@class="episode"]')
 
-#p_elementList = driver.find_element_by_class_name('episode_name clearfix')
+month = input("Enter month: ")
+day = input("Enter day: ")
+year = input("Enter year: ")
+
+startTime = raw_input("Enter start time(military or regular): ")
+endTime = raw_input("Enter end time(military or regular): ")
+
+
+site = ('https://api.composer.nprstations.org/v1/widget/520a4969e1c85ef575dd2484/day?date=%d-%02d-%02d&callback=jQuery17205943383084192947_1518308649099&format=jsonp&_=1518310998172' % (year, month, day))
+
+print site
+
+page = urllib2.urlopen(site)
+
+
+
+soup = BeautifulSoup(page, 'lxml')
+
+nprByTime(startTime, endTime)
