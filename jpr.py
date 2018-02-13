@@ -141,10 +141,10 @@ def nprByTime(beginTime, endTime, soup):
 		
 	return scrapedSongList
 		
-def getList(month, day, year):
+def getList(month, day, year, start, end):
 	
-	startTime = "2:00"
-	endTime = "14:00"
+	# startTime = "2:00"
+	# endTime = "14:00"
 
 
 	site = ('https://api.composer.nprstations.org/v1/widget/520a4969e1c85ef575dd2484/day?date=%d-%02d-%02d&callback=jQuery17205943383084192947_1518308649099&format=jsonp&_=1518310998172' % (year, month, day))
@@ -155,7 +155,7 @@ def getList(month, day, year):
 
 	soup = BeautifulSoup(page, 'lxml')
 
-	mySongList = nprByTime(startTime, endTime, soup)
+	mySongList = nprByTime(start, end, soup)
 	
 	finalList = list()
 	for song in mySongList:

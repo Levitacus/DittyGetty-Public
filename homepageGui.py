@@ -27,50 +27,67 @@ class Application(Frame):
 		
 	def scrape(self):
 		#
-		t = Toplevel(root)
-		t.wm_title("Enter Date")
+		self.t = Toplevel(root)
+		self.t.wm_title("Enter Date and Time")
 		
 		self.month = 0
 		self.day = 0 
 		self.year = 0
-		t.month_entry = Entry(t, textvariable=self.month)
-		#t.month_entry = Entry(t)
-		t.month_label = Label(t, text="Enter Month here")
+		self.startTime = ""
+		self.endTime = ""
+		#t.month_entry = Entry(t, textvariable=self.month)
+		self.month_entry = Entry(self.t)
+		month_label = Label(self.t, text="Enter Month here")
 		
-		t.day_entry = Entry(t, textvariable=self.day)
-		#t.day_entry = Entry(t)
-		t.day_label = Label(t, text="Enter Day here")
+		#t.day_entry = Entry(t, textvariable=self.day)
+		self.day_entry = Entry(self.t)
+		day_label = Label(self.t, text="Enter Day here")
 		
-		t.year_entry = Entry(t, textvariable=self.year)
-		#t.year_entry = Entry(t)
-		t.year_label = Label(t, text="Enter Year here")
+		#t.year_entry = Entry(t, textvariable=self.year)
+		self.year_entry = Entry(self.t)
+		year_label = Label(self.t, text="Enter Year here")
 		
-		#month, day, year = month_entry.get(), day_entry.get(), year_entry.get()
+		self.startTime_entry = Entry(self.t)
+		startTime_label = Label(self.t, text="Start Time")
+		
+		self.endTime_entry = Entry(self.t)
+		endTime_label = Label(self.t, text="End Time")
+		
+		hyphen_label = Label(self.t, text="-")
 		
 		#important that the callback function here just references the command, not passing it
-		t.submit_button = Button(t, text="Submit", command=self.getPlaylist)
+		self.t.submit_button = Button(self.t, text="Submit", command=self.getPlaylist)
 		
 		#place all of the widgets
-		t.month_label.grid(row=1, column=0)
-		t.month_entry.grid(row=2, column=0)
+		month_label.grid(row=1, column=0)
+		self.month_entry.grid(row=2, column=0)
 		
-		t.day_label.grid(row=1, column=1)
-		t.day_entry.grid(row=2, column=1)
+		day_label.grid(row=1, column=1)
+		self.day_entry.grid(row=2, column=1)
 		
-		t.year_label.grid(row=1, column=2)
-		t.year_entry.grid(row=2, column=2)
+		year_label.grid(row=1, column=2)
+		self.year_entry.grid(row=2, column=2)
 		
-		t.submit_button.grid(row=3, column=1)
+		startTime_label.grid(row=3, column=0)
+		self.startTime_entry.grid(row=4, column=0)
 		
-		month = 2
-		day = 8
-		year = 2017
+		hyphen_label.grid(row=4, column=1)
+		
+		endTime_label.grid(row=3, column=2)
+		self.endTime_entry.grid(row=4, column=2)
+		
+		self.t.submit_button.grid(row=5, column=1)
+		
 		
 	#callback function for the submit_button
 	def getPlaylist(self):
-		playlist = getList(self.month, self.day, self.year)
+		self.month, self.day, self.year = int(self.month_entry.get()), int(self.day_entry.get()), int(self.year_entry.get())
+		self.startTime = self.startTime_entry.get()
+		self.endTime = self.endTime_entry.get()
+		
+		playlist = getList(self.month, self.day, self.year, self.startTime, self.endTime)
 		self.updatePlaylist()
-		t.quit();
+		self.t.destroy();
 	
 	#Was supposed to update the playlist in the viewer to match the playlist variable
 	#but alas, it is borked
