@@ -86,22 +86,25 @@ class Application(Frame):
 		
 	#callback function for the submit_button
 	def getPlaylist(self):
+		global playlist
+		
 		self.month, self.day, self.year = int(self.month_entry.get()), int(self.day_entry.get()), int(self.year_entry.get())
 		self.startTime = self.startTime_entry.get()
 		self.endTime = self.endTime_entry.get()
-		playlist = list()
 		playlist = getList(self.month, self.day, self.year, self.startTime, self.endTime)
-		self.updatePlaylist(playlist)
+		self.updatePlaylist()
 		self.t.destroy()
 	
 	#Was supposed to update the playlist in the viewer to match the playlist variable
 	#but alas, it is borked
-	def updatePlaylist(self, playlistTest):
-		for song in playlistTest:
+	def updatePlaylist(self):
+		global playlist
+		
+		for song in playlist:
 			print song
 		self.playlist_viewer.delete(0, END)
 		self.playlist_viewer.update_idletasks()
-		for song in playlistTest:
+		for song in playlist:
 			self.playlist_viewer.insert(END, song)
 		print 'update playlist was called'
 		self.playlist_viewer.update_idletasks()
