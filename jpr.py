@@ -160,6 +160,6 @@ def getList(month, day, year, start, end):
 	finalList = list()
 	for song in mySongList:
 		finalList.append(song.toString())
-	for song in finalList:
-		print song
+	# for song in finalList:
+		# print song
 	return finalList;
