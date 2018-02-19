@@ -33,12 +33,13 @@ def parseListLabel(listName, label):
 
 	return parsedList
 
-def findElementClass(elementTag, className):
+def findElementClass(elementTag, className, soup):
 	print className
 	elements = soup.find_all(elementTag,  {'class':className})
 	content = list()
 	for element in elements:
-		content.append(element.text)
+		#need to encode to utf-8 to fix the problem
+		content.append(element.text.encode("utf-8"))
 
 	return content
 
@@ -103,11 +104,11 @@ def trimListTime(scrapedSongList, beginTime, endTime):
 
 
 
-def nprByTime(beginTime, endTime):
+def nprByTime(beginTime, endTime, soup):
 
-	songTimeList =  findElementClass('li', '\\"whatson-startTime\\"')
+	songTimeList =  findElementClass('li', '\\"whatson-startTime\\"', soup)
 
-	songDataList = findElementClass('div', '\\"label\\"')
+	songDataList = findElementClass('div', '\\"label\\"', soup)
 
 	songArtistList = parseListLabel(songDataList, 'ARTIST:')
 	songNameList = parseListLabel(songDataList, 'TITLE:')
@@ -132,33 +133,33 @@ def nprByTime(beginTime, endTime):
 
 	scrapedSongList = trimListTime(scrapedSongList, beginTime, endTime)
 
+	
+
+	# for song in scrapedSongList:
+
+		# print(song.toString())
+		
+	return scrapedSongList
+		
+def getList(month, day, year, start, end):
+	
+	# startTime = "2:00"
+	# endTime = "14:00"
 
 
+	site = ('https://api.composer.nprstations.org/v1/widget/520a4969e1c85ef575dd2484/day?date=%d-%02d-%02d&callback=jQuery17205943383084192947_1518308649099&format=jsonp&_=1518310998172' % (year, month, day))
 
+	print site
 
+	page = urllib2.urlopen(site)
 
+	soup = BeautifulSoup(page, 'lxml')
 
-	for song in scrapedSongList:
-
-		print(song.toString())
-
-
-month = input("Enter month: ")
-day = input("Enter day: ")
-year = input("Enter year: ")
-
-startTime = raw_input("Enter start time(military or regular): ")
-endTime = raw_input("Enter end time(military or regular): ")
-
-
-site = ('https://api.composer.nprstations.org/v1/widget/520a4969e1c85ef575dd2484/day?date=%d-%02d-%02d&callback=jQuery17205943383084192947_1518308649099&format=jsonp&_=1518310998172' % (year, month, day))
-
-print site
-
-page = urllib2.urlopen(site)
-
-
-
-soup = BeautifulSoup(page, 'lxml')
-
-nprByTime(startTime, endTime)
+	mySongList = nprByTime(start, end, soup)
+	
+	finalList = list()
+	for song in mySongList:
+		finalList.append(song.toString())
+	# for song in finalList:
+		# print song
+	return finalList;
