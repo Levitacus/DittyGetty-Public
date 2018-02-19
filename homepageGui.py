@@ -1,5 +1,6 @@
 from Tkinter import *
 from jpr import *
+from songInfo import *
 
 #The current playlist that is viewed, needs to be global.
 
@@ -10,15 +11,63 @@ class Application(Frame):
 	
 	#Various callback functions for the homepage buttons
 	def add_song(self):
-		print "Add!"
+		self.add_window = Toplevel(root)
+		self.add_window.wm_title("Enter Date and Time")
 		
-	def helpbox(self):
-		print "Help info!"
+		self.addSong = ""
+		self.addArtist = ""
+		
+		#Entry field for song name
+		self.song_entry = Entry(self.add_window)
+		song_label = Label(self.add_window, text="Song Name")
+		
+		#Entry field for artist name
+		self.artist_entry = Entry(self.add_window)
+		artist_label = Label(self.add_window, text="Artist Name")
+		
+		self.add_window.submit_button = Button(self.add_window, text="Submit", command=self.add_confirm)
+		
+		#place all of the widgets
+		song_label.grid(row=1, column=0)
+		self.song_entry.grid(row=2, column=0)
+		
+		artist_label.grid(row=1, column=1)
+		self.artist_entry.grid(row=2, column=1)
+		
+		self.add_window.submit_button.grid(row=2, column=2)
+		
 	
+	def add_confirm(self):
+		global playlist
+		song = songInfo(self.song_entry.get(), self.artist_entry.get()).toString()
+		playlist.append(song)
+		self.playlist_viewer.insert(END, song)
+		self.add_window.destroy()
+	
+	def helpbox(self):
+		global playlist
+		
+		for song in playlist:
+			print song
+		
 	def remove_song(self):
-		print "Remove!"
+		global playlist
+		items = self.playlist_viewer.curselection()
+		songs = list()
+		for item in items:
+			songs.append(self.playlist_viewer.get(item))
+		
+		for song in songs:
+			print song
+			for element in playlist:
+				if song == element:
+					playlist.remove(element)
+		self.updatePlaylist()
 		
 	def clear_songs(self):
+		global playlist
+		playlist = list()
+		self.playlist_viewer.delete(0, END)
 		print "Clear!"
 		
 	def import_text(self):
@@ -100,14 +149,12 @@ class Application(Frame):
 	def updatePlaylist(self):
 		global playlist
 		
-		for song in playlist:
-			print song
+		# for song in playlist:
+			# print song
 		self.playlist_viewer.delete(0, END)
-		self.playlist_viewer.update_idletasks()
 		for song in playlist:
 			self.playlist_viewer.insert(END, song)
 		print 'update playlist was called'
-		self.playlist_viewer.update_idletasks()
 	
 		
 		

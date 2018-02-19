@@ -13,6 +13,7 @@ import time
 from helperFuncs import timeObject
 
 from songInfo import scrapedSongInfo
+from songInfo import songInfo
 
 import re
 import urllib2
@@ -155,11 +156,19 @@ def getList(month, day, year, start, end):
 
 	soup = BeautifulSoup(page, 'lxml')
 
-	mySongList = nprByTime(start, end, soup)
+	scrapedSongList = nprByTime(start, end, soup)
 	
 	finalList = list()
-	for song in mySongList:
+	
+	i = 0
+	
+	for times in scrapedSongList:
+		song = songInfo(scrapedSongList[i].songName, scrapedSongList[i].songArtist)
 		finalList.append(song.toString())
+		i += 1
+		
+	# for song in mySongList:
+		# finalList.append(song.toString())
 	# for song in finalList:
 		# print song
 	return finalList;

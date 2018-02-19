@@ -11,6 +11,10 @@ class songInfo:
 		self.songName = name
 
 		self.songArtist = artist
+	
+	def toString(self):
+
+		return ("Name: %s Artist: %s" % (self.songName, self.songArtist))
 
 
 
