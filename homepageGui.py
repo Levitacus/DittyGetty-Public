@@ -53,16 +53,26 @@ class Application(Frame):
 	def remove_song(self):
 		global playlist
 		items = self.playlist_viewer.curselection()
-		songs = list()
+		count = 0
 		for item in items:
-			songs.append(self.playlist_viewer.get(item))
+			del playlist[item - count]
+			print(self.playlist_viewer.get(item - count))
+			self.playlist_viewer.delete(item - count)
+			count += 1
+			
+		# Old way, doesn't work as well because it updated the whole playlist
+		# Every time you removed song(s)
 		
-		for song in songs:
-			print song
-			for element in playlist:
-				if song == element:
-					playlist.remove(element)
-		self.updatePlaylist()
+		# songs = list()
+		# for item in items:
+			# songs.append(self.playlist_viewer.get(item))
+		
+		# for song in songs:
+			# print song
+			# for element in playlist:
+				# if song == element:
+					# playlist.remove(element)
+		# self.updatePlaylist()
 		
 	def clear_songs(self):
 		global playlist
