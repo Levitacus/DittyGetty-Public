@@ -1,19 +1,19 @@
-from selenium import webdriver
+#from selenium import webdriver
 
-from selenium.webdriver.common.by import By
+#from selenium.webdriver.common.by import By
 
-from selenium.webdriver.support.ui import WebDriverWait
+#from selenium.webdriver.support.ui import WebDriverWait
 
-from selenium.webdriver.support import expected_conditions as EC
+#from selenium.webdriver.support import expected_conditions as EC
 
-from selenium.webdriver.common.keys import Keys
+#from selenium.webdriver.common.keys import Keys
 
 import time
 
 from helperFuncs import timeObject
 
 from songInfo import scrapedSongInfo
-from songInfo import songInfo
+from songInfo import SongInfo
 
 import re
 import urllib2
@@ -163,8 +163,8 @@ def getList(month, day, year, start, end):
 	i = 0
 	
 	for times in scrapedSongList:
-		song = songInfo(scrapedSongList[i].songName, scrapedSongList[i].songArtist)
-		finalList.append(song.toString())
+		song = SongInfo(scrapedSongList[i].songName, scrapedSongList[i].songArtist)
+		finalList.append(song)
 		i += 1
 		
 	# for song in mySongList:

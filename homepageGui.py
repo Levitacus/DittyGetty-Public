@@ -1,6 +1,9 @@
 from Tkinter import *
 from jpr import *
 from songInfo import *
+from dgtest import *
+import tkFileDialog
+import tkMessageBox
 
 #The current playlist that is viewed, needs to be global.
 
@@ -39,9 +42,9 @@ class Application(Frame):
 	
 	def add_confirm(self):
 		global playlist
-		song = songInfo(self.song_entry.get(), self.artist_entry.get()).toString()
+		song = SongInfo(self.song_entry.get(), self.artist_entry.get())
 		playlist.append(song)
-		self.playlist_viewer.insert(END, song)
+		self.playlist_viewer.insert(END, song.toString())
 		self.add_window.destroy()
 	
 	def helpbox(self):
@@ -81,13 +84,50 @@ class Application(Frame):
 		print "Clear!"
 		
 	def import_text(self):
-		print "Import text!"
+		global playlist
+		filename = tkFileDialog.askopenfilename()
+		file = open(filename, 'r')
+
+		if file is None:
+			return
+
+		playlist = list()
+		self.playlist_viewer.delete(0, END)
+
+		for line in file:
+			trimmedLine = line.replace('\n', "")
+			nameArtist = trimmedLine.split("-")
+			song = SongInfo(nameArtist[0], nameArtist[1])
+			playlist.append(song)
+
+		self.updatePlaylist()
+
 		
 	def export_text(self):
-		print "Export text!"
+		f = tkFileDialog.asksaveasfile(mode='w', defaultextension=".txt")
+		if f is None:
+			return
+
+		for songs in playlist:
+			f.write("%s-%s\n" % (songs.songName, songs.songArtist))
+
+		f.close()
 		
 	def export_gmusic(self):
-		print "Export playlist!"
+		self.t = Toplevel(root)
+		self.t.wm_title("Export")
+
+		self.playlistName = ""
+		self.playlist_name_entry = Entry(self.t)
+		playlist_name_label = Label(self.t, text="Enter Playlist Name Here")
+
+		self.t.submit_button2 = Button(self.t, text="Submit", command=self.exportGmusic)	
+
+		playlist_name_label.grid(row=1, column=0)
+		self.playlist_name_entry.grid(row=2, column=0)	
+
+		self.t.submit_button2.grid(row=3, column=0)
+		
 		
 	def scrape(self):
 		#
@@ -142,6 +182,20 @@ class Application(Frame):
 		
 		self.t.submit_button.grid(row=5, column=1)
 		
+	#callback function for the submit_button for exporting to gmusic
+	def exportGmusic(self):
+		global playlist
+		
+		self.playlistName = self.playlist_name_entry.get()
+
+		loginGmusic()
+
+		if uploadSongsGmusic(self.playlistName, playlist):
+			tkMessageBox.showinfo('Playlist Creation', 'Creation of playlist: %s successful!' % (self.playlistName))
+		else:
+			tkMessageBox.showinfo('Playlist Creation Error', 'Creation of playlist: %s unsuccessful!' % (self.playlistName))
+		
+		self.t.destroy()
 		
 	#callback function for the submit_button
 	def getPlaylist(self):
@@ -150,6 +204,7 @@ class Application(Frame):
 		self.month, self.day, self.year = int(self.month_entry.get()), int(self.day_entry.get()), int(self.year_entry.get())
 		self.startTime = self.startTime_entry.get()
 		self.endTime = self.endTime_entry.get()
+		#call getList function from jpr.py
 		playlist = getList(self.month, self.day, self.year, self.startTime, self.endTime)
 		self.updatePlaylist()
 		self.t.destroy()
@@ -163,7 +218,7 @@ class Application(Frame):
 			# print song
 		self.playlist_viewer.delete(0, END)
 		for song in playlist:
-			self.playlist_viewer.insert(END, song)
+			self.playlist_viewer.insert(END, song.toString())
 		print 'update playlist was called'
 	
 		
@@ -197,13 +252,13 @@ class Application(Frame):
 		
 		#The import text button
 		self.import_text_button = Button(self, text="Import as Textfile")
-		self.import_text_button["command"] = self.clear_songs
+		self.import_text_button["command"] = self.import_text
 
 		self.import_text_button.grid(row=10, column=0, pady=5)
 
 		#The export text button
 		self.export_text_button = Button(self, text="Export as Textfile")
-		self.export_text_button["command"] = self.clear_songs
+		self.export_text_button["command"] = self.export_text
 
 		self.export_text_button.grid(row=10, column=1, pady=5)
 
