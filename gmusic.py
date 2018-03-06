@@ -26,6 +26,7 @@ def findStoreId(songList):
 				idList.append(findTrackElement(search, 'storeId')[0])
 		except (IndexError):
 			print 'PLACEHOLDER: UNSUCCESSFUL SONG ADDITION'
+			failedSongs.append(songs)
 			continue
 			
 	return idList
@@ -47,16 +48,20 @@ def uploadSongsGmusic(playlistName, songArtistList):
 	storeIdList =  findStoreId(songArtistList)
 
 	if initializePlaylist(playlistName, storeIdList):
-		return True
+		return failedSongs
 	else:
 		return False
 
 
-def loginGmusic():
+def loginGmusic(username, pword):
 	global api
+	global failedSongs
+	failedSongs = list()
 	api = Mobileclient()
 		
-	logged_in = api.login('patkmatts@gmail.com', 'ztqiefdvkyuenkxm', Mobileclient.FROM_MAC_ADDRESS)
+	#logged_in = api.login('patkmatts@gmail.com', 'ztqiefdvkyuenkxm', Mobileclient.FROM_MAC_ADDRESS)
+
+	logged_in = api.login(username, pword, Mobileclient.FROM_MAC_ADDRESS)
 
 	if logged_in:
 		return True
