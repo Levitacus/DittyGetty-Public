@@ -82,8 +82,8 @@ class Application(Frame):
 		
 		self.help_window = Toplevel(root)
 		self.help_window.wm_title("Help")
-		options = ["Add Song", "Remove Song", "Clear Songs", "Import from Website", "Import as Textfile", "Export as Textfile", "Export to Google Music", ]
-		descriptions = ["Adds a song to the active playlist.", "Removes all songs that are currently selected from the active playlist.", "Clears all songs from the active playlist.", "Imports a playlist from JPR given a date and range of time.", "Imports a textfile using format songname - songartist.", "Exports the current playlist as a textfile that uses the format songname - songartist.", "Exports the current playlist to Google Music, will ask for login credentials."]
+		options = ["Selection", "Add Song", "Remove Song", "Clear Songs", "Import from Website", "Import as Textfile", "Export as Textfile", "Export to Google Music", ]
+		descriptions = ["Click an entry in the active playlist to select. Hold ctrl to select multiple. Hold shift to select consecutive.", "Adds a song to the active playlist.", "Removes all songs that are currently selected from the active playlist.", "Clears all songs from the active playlist.", "Imports a playlist from JPR given a date and range of time.", "Imports a textfile using the format: time || songname || songartist.", "Exports the current playlist as a textfile that uses the format: time || songname || songartist.", "Exports the current playlist to Google Music, will ask for login credentials."]
 		
 		for i in range(0, len(options)):
 			label1 = Label(self.help_window, text=options[i], anchor=W, justify=LEFT)
@@ -93,8 +93,8 @@ class Application(Frame):
 			label2.grid(row=i, column=1, sticky=W)
 		#help_label.grid(row=0, column=0, columnspan=2, rowspan=len(options))
 
-		for song in playlist:
-			print song.toString()
+		# for song in playlist:
+			# print song.toString()
 		
 		
 	def remove_song(self):
