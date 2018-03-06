@@ -12,7 +12,8 @@ import time
 
 from helperFuncs import timeObject
 
-from songInfo import scrapedSongInfo
+#This is unnecessary for now
+#from songInfo import scrapedSongInfo
 from songInfo import SongInfo
 
 import re
@@ -124,7 +125,7 @@ def nprByTime(beginTime, endTime, soup):
 
 	for times in songTimeList:
 
-		song = scrapedSongInfo(songNameList[i], songArtistList[i], songTimeList[i])
+		song = SongInfo(songNameList[i], songArtistList[i], songTimeList[i])
 
 		scrapedSongList.append(song)
 
@@ -158,17 +159,14 @@ def getList(month, day, year, start, end):
 
 	scrapedSongList = nprByTime(start, end, soup)
 	
-	finalList = list()
+	# finalList = list()
 	
-	i = 0
+	# i = 0
 	
-	for times in scrapedSongList:
-		song = SongInfo(scrapedSongList[i].songName, scrapedSongList[i].songArtist)
-		finalList.append(song)
-		i += 1
+	# for times in scrapedSongList:
+		# song = SongInfo(scrapedSongList[i].songName, scrapedSongList[i].songArtist)
+		# finalList.append(song)
+		# i += 1
 		
-	# for song in mySongList:
-		# finalList.append(song.toString())
-	# for song in finalList:
-		# print song
-	return finalList;
+	
+	return scrapedSongList;

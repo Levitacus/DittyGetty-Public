@@ -9,18 +9,17 @@ import ttk
 #The current playlist that is viewed, needs to be global.
 
 playlist = list()
-#playlist = getList(2, 8, 2017, "2:00", "14:00")
 
 class Application(Frame):
 	
 	#These aren't working atm
-	def limitSongSize(self):
-		value = self.songVar.get()
-		if len(value) > 20: songVar.set(value[:20])
+	# def limitSongSize(self):
+		# value = self.songVar.get()
+		# if len(value) > 20: songVar.set(value[:20])
 	
-	def limitArtistSize(self):
-		value = self.artistVar.get()
-		if len(value) > 20: artistVar.set(value[:20])
+	# def limitArtistSize(self):
+		# value = self.artistVar.get()
+		# if len(value) > 20: artistVar.set(value[:20])
 
 	#Various callback functions for the homepage buttons
 	def add_song(self):
@@ -29,9 +28,9 @@ class Application(Frame):
 		
 		# self.addSong = ""
 		# self.addArtist = ""
-		self.addError = ""
+		self.add_error = ""
 		
-		self.addError = StringVar()
+		self.add_error = StringVar()
 		
 		# self.songVar = StringVar()
 		# self.songVar.trace('w', self.limitSongSize)
@@ -48,6 +47,8 @@ class Application(Frame):
 		
 		self.add_window.submit_button = Button(self.add_window, text="Submit", command=self.add_confirm)
 		
+		#Error label
+		self.add_error_label = Label(self.add_window, textvariable=self.add_error)
 
 		#place all of the widgets
 		song_label.grid(row=1, column=0)
@@ -65,14 +66,15 @@ class Application(Frame):
 
 		# error check for size of artist and song names
 		if(len(self.song_entry.get()) > 75 or len(self.song_entry.get()) < 1):
-			self.addError.set("The song needs to be between 1 and 75 characters.")
+			self.add_error.set("The song needs to be between 1 and 75 characters.")
 		elif(len(self.artist_entry.get()) > 75 or len(self.artist_entry.get()) < 1):
-			self.addError.set("The artist needs to be between 1 and 75 characters.")
+			self.add_error.set("The artist needs to be between 1 and 75 characters.")
 		else:
-			self.addError.set("")
-			song = SongInfo(self.song_entry.get(), self.artist_entry.get())
+			self.add_error.set("")
+			#"" is for the time, which if you're manually adding it, then it doesn't matter.
+			song = SongInfo(self.song_entry.get(), self.artist_entry.get(), "")
 			playlist.append(song)
-			self.playlist_view.insert("", 'end', text=1, values=(song.songName, song.songArtist))
+			self.playlist_view.insert("", 'end', text=0, values=(song.songName, song.songArtist, song.songTime))
 			self.add_window.destroy()
 	
 	def helpbox(self):
@@ -80,9 +82,16 @@ class Application(Frame):
 		
 		self.help_window = Toplevel(root)
 		self.help_window.wm_title("Help")
-		helpText="Add Song - Adds a song to the active playlist.\n Remove Song - Removes all songs that are currently selected from the active playlist.\n Clear Songs - Clears all songs from the active playlist.\n Import from Website - Imports a playlist from JPR given a date and range of time.\n Import as Textfile - imports a textfile using format songname - songartist.\n Export as Textfile - exports the current playlist as a textfile that uses the format songname - songartist.\n Export to Google Music - Exports the current playlist to Google Music, will ask for login credentials."
-		help_label = Label(self.help_window, text=helpText)
-		help_label.grid(row=0, column=0, columnspan=10, rowspan=10)
+		options = ["Add Song", "Remove Song", "Clear Songs", "Import from Website", "Import as Textfile", "Export as Textfile", "Export to Google Music", ]
+		descriptions = ["Adds a song to the active playlist.", "Removes all songs that are currently selected from the active playlist.", "Clears all songs from the active playlist.", "Imports a playlist from JPR given a date and range of time.", "Imports a textfile using format songname - songartist.", "Exports the current playlist as a textfile that uses the format songname - songartist.", "Exports the current playlist to Google Music, will ask for login credentials."]
+		
+		for i in range(0, len(options)):
+			label1 = Label(self.help_window, text=options[i], anchor=W, justify=LEFT)
+			label2 = Label(self.help_window, text=descriptions[i], anchor=W, justify=LEFT)
+			
+			label1.grid(row=i, column=0, sticky=W)
+			label2.grid(row=i, column=1, sticky=W)
+		#help_label.grid(row=0, column=0, columnspan=2, rowspan=len(options))
 
 		for song in playlist:
 			print song.toString()
@@ -121,8 +130,8 @@ class Application(Frame):
 
 		for line in file:
 			trimmedLine = line.replace('\n', "")
-			nameArtist = trimmedLine.split("-")
-			song = SongInfo(nameArtist[0], nameArtist[1])
+			nameArtist = trimmedLine.split("||")
+			song = SongInfo(nameArtist[1], nameArtist[2], nameArtist[0])
 			playlist.append(song)
 
 		self.updatePlaylist()
@@ -133,8 +142,8 @@ class Application(Frame):
 		if f is None:
 			return
 
-		for songs in playlist:
-			f.write("%s-%s\n" % (songs.songName, songs.songArtist))
+		for song in playlist:
+			f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
 
 		f.close()
 
@@ -275,8 +284,7 @@ class Application(Frame):
 		self.updatePlaylist()
 		self.t.destroy()
 	
-	#Was supposed to update the playlist in the viewer to match the playlist variable
-	#but alas, it is borked
+	#Updates the playlist in the viewer to match the playlist variable
 	def updatePlaylist(self):
 		global playlist
 		
@@ -284,7 +292,7 @@ class Application(Frame):
 			# print song
 		self.playlist_view.delete(*self.playlist_view.get_children())
 		for song in playlist:
-			self.playlist_view.insert("", 'end', text=1, values=(song.songName, song.songArtist))
+			self.playlist_view.insert("", 'end', text=1, values=(song.songTime, song.songName, song.songArtist))
 		print 'update playlist was called'
 	
 		
@@ -296,49 +304,49 @@ class Application(Frame):
 		self.help_button = Button(self, text="Help")
 		self.help_button["command"] = self.helpbox
 		
-		self.help_button.grid(row=1, column=3, padx=5)
+		self.help_button.grid(row=1, column=5, padx=5)
 	
 		#The eventual add button
 		self.add_button = Button(self, text="Add Song")
 		self.add_button["command"] = self.add_song
 
-		self.add_button.grid(row=3, column=3, padx=5)
+		self.add_button.grid(row=3, column=5, padx=5)
 		
 		#The remove button
 		self.remove_button = Button(self, text="Remove Song")
 		self.remove_button["command"] = self.remove_song
 
-		self.remove_button.grid(row=4, column=3, padx=5)
+		self.remove_button.grid(row=4, column=5, padx=5)
 		
 		#The clear button
 		self.clear_button = Button(self, text="Clear Songs")
 		self.clear_button["command"] = self.clear_songs
 
-		self.clear_button.grid(row=5, column=3, padx=5)
+		self.clear_button.grid(row=5, column=5, padx=5)
 		
 		#The import text button
 		self.import_text_button = Button(self, text="Import as Textfile")
 		self.import_text_button["command"] = self.import_text
 
-		self.import_text_button.grid(row=10, column=0, pady=5)
+		self.import_text_button.grid(row=10, column=1, pady=5)
 
 		#The export text button
 		self.export_text_button = Button(self, text="Export as Textfile")
 		self.export_text_button["command"] = self.export_text
 
-		self.export_text_button.grid(row=10, column=1, pady=5)
+		self.export_text_button.grid(row=10, column=2, pady=5)
 
 		#The gmusic button
 		self.gMusic_button = Button(self, text="Export to Google Music")
 		self.gMusic_button["command"] = self.login_gmusic
 
-		self.gMusic_button.grid(row=10, column=2, padx=5,)
+		self.gMusic_button.grid(row=10, column=3, padx=5,)
 
 		#The webscrape button
 		self.webscrape_button = Button(self, text="Import from Website")
 		self.webscrape_button["command"] = self.scrape
 
-		self.webscrape_button.grid(row=8, column=3, padx=5, pady=5)
+		self.webscrape_button.grid(row=8, column=5, padx=5, pady=5)
 
 	
 	def on_exit(self):
@@ -367,9 +375,11 @@ class Application(Frame):
 
 		
 		self.playlist_view = ttk.Treeview(self, height=30, yscrollcommand=scrollbar.set)
-		self.playlist_view["columns"]=("one", "two")
+		self.playlist_view["columns"]=("zero", "one", "two")
+		self.playlist_view.column("zero", width=150)
 		self.playlist_view.column("one", width=250)
 		self.playlist_view.column("two", width=250)
+		self.playlist_view.heading("zero", text="Time")
 		self.playlist_view.heading("one", text="Name")
 		self.playlist_view.heading("two", text="Artist")
 
@@ -378,8 +388,8 @@ class Application(Frame):
 
 		scrollbar.config(command=self.playlist_view.yview)
 
-		self.playlist_view.grid(row=2, column=1, rowspan=8, sticky="nesw")
-		scrollbar.grid(row=2, column=2, rowspan=8, sticky="nsw")
+		self.playlist_view.grid(row=2, column=1, rowspan=8, columnspan=3, padx=5, sticky="nesw")
+		scrollbar.grid(row=2, column=4, rowspan=8, sticky="nsw")
 
 		#listbox callback for selecting multiple columns
 		
@@ -387,7 +397,7 @@ class Application(Frame):
 		self.createWidgets()
 
 		self.playlist_label_name = Label(self, text="Playlist Viewer")
-		self.playlist_label_name.grid(row=1, column=1)
+		self.playlist_label_name.grid(row=1, column=2)
 		
 	
 	
