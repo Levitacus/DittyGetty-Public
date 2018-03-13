@@ -72,7 +72,7 @@ class Application(Frame):
 		else:
 			self.add_error.set("")
 			#"" is for the time, which if you're manually adding it, then it doesn't matter.
-			song = SongInfo(self.song_entry.get(), self.artist_entry.get(), "")
+			song = SongInfo('', self.song_entry.get(), self.artist_entry.get())
 			playlist.append(song)
 			self.playlist_view.insert("", 'end', text=0, values=(song.songName, song.songArtist, song.songTime))
 			self.add_window.destroy()
@@ -103,7 +103,7 @@ class Application(Frame):
 		count = 0
 		for item in items:
 			#del playlist[item - count]
-			print self.playlist_view.index(item)
+			#print self.playlist_view.index(item)
 			del playlist[self.playlist_view.index(item) - count]
 			self.playlist_view.delete(item)
 			#print(self.playlist_view.get(item - count))
@@ -138,14 +138,28 @@ class Application(Frame):
 
 		
 	def export_text(self):
-		f = tkFileDialog.asksaveasfile(mode='w', defaultextension=".txt")
-		if f is None:
-			return
+		global playlist
+		
+		#If the playlist is empty
+		if len(playlist) is 0:
+			export_error_window = Toplevel(root)
+			export_error_window.wm_title("Error")
+			label = Label(export_error_window, text="Can't export an empty playlist.")
+			button = Button(export_error_window, text="Okay", command=export_error_window.destroy)
+			label.grid(row=0, column=0, padx=10, pady=10)
+			button.grid(row=1, column=0, padx=10)
+			
+		
+		#If not empty, write to file
+		else:
+			f = tkFileDialog.asksaveasfile(mode='w', defaultextension=".txt")
+			if f is None:
+				return
 
-		for song in playlist:
-			f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
+			for song in playlist:
+				f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
 
-		f.close()
+			f.close()
 
 	def login_gmusic(self):
 
