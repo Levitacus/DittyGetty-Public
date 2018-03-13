@@ -115,7 +115,8 @@ def nprByTime(beginTime, endTime, soup):
 	songArtistList = parseListLabel(songDataList, 'ARTIST:')
 	songNameList = parseListLabel(songDataList, 'TITLE:')
 
-
+	#get rid of weird error, talk showing up in titles but is not in html
+	songNameList[:] = [x for x in songNameList if x != "Talk"]
 
 	scrapedSongList = list()
 
@@ -123,7 +124,7 @@ def nprByTime(beginTime, endTime, soup):
 
 	i = 0
 
-	for times in songTimeList:
+	for times in songArtistList:
 
 		song = SongInfo(songNameList[i], songArtistList[i], songTimeList[i])
 
@@ -170,3 +171,4 @@ def getList(month, day, year, start, end):
 		
 	
 	return scrapedSongList;
+
