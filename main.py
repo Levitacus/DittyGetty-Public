@@ -5,6 +5,8 @@ from gmusic import *
 import tkFileDialog
 import tkMessageBox
 import ttk
+import re
+import urllib2
 
 #The current playlist that is viewed, needs to be global.
 
@@ -80,10 +82,10 @@ class Application(Frame):
 	def helpbox(self):
 		global playlist
 		
-		self.help_window = Toplevel(root)
+		self.help_window = Toplevel(root, width="500")
 		self.help_window.wm_title("Help")
 		options = ["Selection", "Add Song", "Remove Song", "Clear Songs", "Import from Website", "Import as Textfile", "Export as Textfile", "Export to Google Music", ]
-		descriptions = ["Click an entry in the active playlist to select. Hold ctrl to select multiple. Hold shift to select consecutive.", "Adds a song to the active playlist.", "Removes all songs that are currently selected from the active playlist.", "Clears all songs from the active playlist.", "Imports a playlist from JPR given a date and range of time.", "Imports a textfile using the format: time || songname || songartist.", "Exports the current playlist as a textfile that uses the format: time || songname || songartist.", "Exports the current playlist to Google Music, will ask for login credentials."]
+		descriptions = ["Click an entry in the active playlist to select. Hold ctrl to select multiple. Hold shift to select consecutive.", "Adds a song to the active playlist.", "Removes all songs that are currently selected from the active playlist.", "Clears all songs from the active playlist.", "Imports a playlist from JPR given a date and range of time. Format: dd mm yyyy. hh:mm or hh:mm AM/PM", "Imports a textfile using the format: time || songname || songartist.", "Exports the current playlist as a textfile that uses the format: time || songname || songartist.", "Exports the current playlist to Google Music, will ask for login credentials."]
 		
 		for i in range(0, len(options)):
 			label1 = Label(self.help_window, text=options[i], anchor=W, justify=LEFT)
@@ -164,18 +166,18 @@ class Application(Frame):
 	def login_gmusic(self):
 
 		#login to gmusic
-		self.t2 = Toplevel(root)
-		self.t2.wm_title("Login")
+		self.gmusic_window = Toplevel(root)
+		self.gmusic_window.wm_title("Login")
 
 		self.username = ""
-		self.playlist_username_entry = Entry(self.t2)
-		playlist_username_label = Label(self.t2, text="Email")
+		self.playlist_username_entry = Entry(self.gmusic_window)
+		playlist_username_label = Label(self.gmusic_window, text="Email")
 
 		self.password = ""
-		self.playlist_password_entry = Entry(self.t2, show="*")
-		playlist_password_label = Label(self.t2, text="Password")
+		self.playlist_password_entry = Entry(self.gmusic_window, show="*")
+		playlist_password_label = Label(self.gmusic_window, text="Password")
 
-		self.t2.submit_button2 = Button(self.t2, text="Submit", command=self.export_gmusic)	
+		self.gmusic_window.submit_button2 = Button(self.gmusic_window, text="Submit", command=self.export_gmusic)	
 
 		playlist_username_label.grid(row=1, column=0)
 		self.playlist_username_entry.grid(row=2, column=0)
@@ -183,7 +185,7 @@ class Application(Frame):
 		playlist_password_label.grid(row=1, column=2)
 		self.playlist_password_entry.grid(row=2, column=2)	
 
-		self.t2.submit_button2.grid(row=4, column=1, pady=15, sticky="s")
+		self.gmusic_window.submit_button2.grid(row=4, column=1, pady=15, sticky="s")
 		
 	def export_gmusic(self):
 		
@@ -195,53 +197,55 @@ class Application(Frame):
 		else:
 			#get playlist name
 
-			self.t = Toplevel(root)
-			self.t.wm_title("Export")
+			self.gmusic_window2 = Toplevel(root)
+			self.gmusic_window2.wm_title("Export")
 
 			self.playlistName = ""
-			self.playlist_name_entry = Entry(self.t)
-			playlist_name_label = Label(self.t, text="Enter Playlist Name Here")
+			self.playlist_name_entry = Entry(self.gmusic_window2)
+			playlist_name_label = Label(self.gmusic_window2, text="Enter Playlist Name Here")
 
-			self.t.submit_button2 = Button(self.t, text="Submit", command=self.exportGmusic)	
+			self.gmusic_window2.submit_button2 = Button(self.gmusic_window2, text="Submit", command=self.exportGmusic)	
 
 			playlist_name_label.grid(row=1, column=0)
 			self.playlist_name_entry.grid(row=2, column=0)	
 
-			self.t.submit_button2.grid(row=3, column=0)
+			self.gmusic_window2.submit_button2.grid(row=3, column=0)
 		
 		
 	def scrape(self):
 		#
-		self.t = Toplevel(root)
-		self.t.wm_title("Enter Date and Time")
+		self.scrape_window = Toplevel(root)
+		self.scrape_window.wm_title("Enter Date and Time")
 		
-		self.month = 0
-		self.day = 0 
-		self.year = 0
-		self.startTime = ""
-		self.endTime = ""
+		#error variable
+		self.scrape_error = ""
+		self.scrape_error = StringVar()
+		
 		#t.month_entry = Entry(t, textvariable=self.month)
-		self.month_entry = Entry(self.t)
-		month_label = Label(self.t, text="Enter Month here")
+		self.month_entry = Entry(self.scrape_window)
+		month_label = Label(self.scrape_window, text="Enter Month here")
 		
 		#t.day_entry = Entry(t, textvariable=self.day)
-		self.day_entry = Entry(self.t)
-		day_label = Label(self.t, text="Enter Day here")
+		self.day_entry = Entry(self.scrape_window)
+		day_label = Label(self.scrape_window, text="Enter Day here")
 		
 		#t.year_entry = Entry(t, textvariable=self.year)
-		self.year_entry = Entry(self.t)
-		year_label = Label(self.t, text="Enter Year here")
+		self.year_entry = Entry(self.scrape_window)
+		year_label = Label(self.scrape_window, text="Enter Year here")
 		
-		self.startTime_entry = Entry(self.t)
-		startTime_label = Label(self.t, text="Start Time")
+		self.startTime_entry = Entry(self.scrape_window)
+		startTime_label = Label(self.scrape_window, text="Start Time")
 		
-		self.endTime_entry = Entry(self.t)
-		endTime_label = Label(self.t, text="End Time")
+		self.endTime_entry = Entry(self.scrape_window)
+		endTime_label = Label(self.scrape_window, text="End Time")
 		
-		hyphen_label = Label(self.t, text="---")
+		hyphen_label = Label(self.scrape_window, text="---")
 		
 		#important that the callback function here just references the command, not passing it
-		self.t.submit_button = Button(self.t, text="Submit", command=self.getPlaylist)
+		self.scrape_window.submit_button = Button(self.scrape_window, text="Submit", command=self.getPlaylist)
+		
+		#error label
+		self.scrape_error_label = Label(self.scrape_window, textvariable=self.scrape_error)
 		
 		#place all of the widgets
 		month_label.grid(row=1, column=0)
@@ -261,7 +265,8 @@ class Application(Frame):
 		endTime_label.grid(row=3, column=2)
 		self.endTime_entry.grid(row=4, column=2)
 		
-		self.t.submit_button.grid(row=5, column=1)
+		self.scrape_window.submit_button.grid(row=5, column=1)
+		self.scrape_error_label.grid(row=6, column=0, columnspan=3)
 		
 	#callback function for the submit_button for exporting to gmusic
 	def exportGmusic(self):
@@ -284,19 +289,52 @@ class Application(Frame):
 		else:
 			tkMessageBox.showinfo('Playlist Creation Error', 'Creation of playlist: %s unsuccessful!' % (self.playlistName))
 		
-		self.t.destroy()
+		self.gmusic_window2.destroy()
 		
-	#callback function for the submit_button
+	#callback function for the scrape() submit_button
 	def getPlaylist(self):
 		global playlist
 		
-		self.month, self.day, self.year = int(self.month_entry.get()), int(self.day_entry.get()), int(self.year_entry.get())
-		self.startTime = self.startTime_entry.get()
-		self.endTime = self.endTime_entry.get()
-		#call getList function from jpr.py
-		playlist = getList(self.month, self.day, self.year, self.startTime, self.endTime)
-		self.updatePlaylist()
-		self.t.destroy()
+		month = self.month_entry.get()
+		day = self.day_entry.get()
+		year = self.year_entry.get()
+		startTime = self.startTime_entry.get()
+		endTime = self.endTime_entry.get()
+		
+		# if month is not '':
+			# if int(month) is 2:
+				# day_regex = '[1-9]|0[1-9]|[1-2][1-9]|[2][8]'
+			# else:
+				# day_regex = '[1-9]|0[1-9]|[1-2][1-9]|[3][0-1]'
+		
+		#The regex checks
+		month_check = re.match('[1-9]|0[1-9]|[1][0-2]', month)
+		day_check = re.match('[1-9]|0[1-9]|[1-2][0-9]|[3][0-1]', day)
+		year_check = re.match('20[0-9][0-9]', year)
+		start_check = re.match('([1-9]|[0-1][0-9]|[2][0-4]):[0-5][0-9]|([1-9]|[0-1][0-2]):[0-5][0-9](AM|PM|am|pm)', startTime)
+		end_check = re.match('([1-9]|[0-1][0-9]|[2][0-4]):[0-5][0-9]|([1-9]|[0-1][0-2]):[0-5][0-9](AM|PM|am|pm)', endTime)
+		
+		if month_check is None:
+			self.scrape_error.set("Please enter a month between 1-12 in mm format.")
+		elif day_check is None:
+			self.scrape_error.set("Please enter a day between 1-31 in dd format.")
+		elif year_check is None:
+			self.scrape_error.set("Please enter a year past 1999 in yyyy format.")
+		elif start_check is None:
+			self.scrape_error.set("Please enter a valid start time in hh:mm format or hh:mm AM/PM format.")
+		elif end_check is None:
+			self.scrape_error.set("Please enter a valid end time in hh:mm format or hh:mm AM/PM format.")
+		else:
+			month_int, day_int, year_int = int(month), int(day), int(year)
+			#call getList function from jpr.py
+			try:
+				playlist = getList(month_int, day_int, year_int, startTime, endTime)
+				self.updatePlaylist()
+				self.scrape_window.destroy()
+			except urllib2.URLError:
+				self.scrape_error.set("Cannot scrape that time for some reason")
+			
+				
 	
 	#Updates the playlist in the viewer to match the playlist variable
 	def updatePlaylist(self):
