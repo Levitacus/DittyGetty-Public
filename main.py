@@ -74,9 +74,9 @@ class Application(Frame):
 		else:
 			self.add_error.set("")
 			#"" is for the time, which if you're manually adding it, then it doesn't matter.
-			song = SongInfo('', self.song_entry.get(), self.artist_entry.get())
+			song = SongInfo(self.song_entry.get(), self.artist_entry.get(), '')
 			playlist.append(song)
-			self.playlist_view.insert("", 'end', text=0, values=(song.songName, song.songArtist, song.songTime))
+			self.playlist_view.insert("", 'end', text=0, values=(song.songTime, song.songName, song.songArtist))
 			self.add_window.destroy()
 	
 	def helpbox(self):
