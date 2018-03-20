@@ -310,7 +310,7 @@ class Application(Frame):
 		#The regex checks
 		month_check = re.match('0*([1-9]|0[1-9]|[1][0-2])$', month)
 		day_check = re.match('0*([1-9]|0[1-9]|[1-2][0-9]|[3][0-1])$', day)
-		year_check = re.match('20[0-9][0-9]$', year)
+		year_check = re.match('(20[2-9][0-9]|201[4-9])$', year)
 		start_check = re.match('([1-9]|[0-1][0-9]|[2][0-4]):[0-5][0-9]|([1-9]|[0-1][0-2]):[0-5][0-9](AM|PM|am|pm)$', startTime)
 		end_check = re.match('([1-9]|[0-1][0-9]|[2][0-4]):[0-5][0-9]|([1-9]|[0-1][0-2]):[0-5][0-9](AM|PM|am|pm)$', endTime)
 		
@@ -319,7 +319,7 @@ class Application(Frame):
 		elif day_check is None:
 			self.scrape_error.set("Please enter a day between 1-31 in dd format.")
 		elif year_check is None:
-			self.scrape_error.set("Please enter a year past 1999 in yyyy format.")
+			self.scrape_error.set("Please enter a year past 2013 in yyyy format.")
 		elif start_check is None:
 			self.scrape_error.set("Please enter a valid start time in hh:mm format or hh:mm AM/PM format.")
 		elif end_check is None:
