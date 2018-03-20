@@ -22,9 +22,22 @@ class Application(Frame):
 	# def limitArtistSize(self):
 		# value = self.artistVar.get()
 		# if len(value) > 20: artistVar.set(value[:20])
+	
+	#deletes child windows of root
+	def delete_child_windows(self):
+		count = True
+		children_list = root.winfo_children()
+		for children in children_list:
+			if(count):
+				count = False
+			else:
+				children.destroy()
+		
 
 	#Various callback functions for the homepage buttons
 	def add_song(self):
+
+		self.delete_child_windows()
 		self.add_window = Toplevel(root)
 		self.add_window.wm_title("Enter Date and Time")
 		
@@ -120,26 +133,31 @@ class Application(Frame):
 		
 	def import_text(self):
 		global playlist
+		self.delete_child_windows()
 		filename = tkFileDialog.askopenfilename()
 		file = open(filename, 'r')
 
 		if file is None:
-			return
+			tkMessageBox.showinfo('Import Text', 'Error: File Not Found')
 
 		#clear playlist
 		playlist = list()
 		self.playlist_view.delete(*self.playlist_view.get_children())
+		
+		try:
+			for line in file:
+				trimmedLine = line.replace('\n', "")
+				nameArtist = trimmedLine.split("||")
+				song = SongInfo(nameArtist[1], nameArtist[2], nameArtist[0])
+				playlist.append(song)
 
-		for line in file:
-			trimmedLine = line.replace('\n', "")
-			nameArtist = trimmedLine.split("||")
-			song = SongInfo(nameArtist[1], nameArtist[2], nameArtist[0])
-			playlist.append(song)
-
-		self.updatePlaylist()
+			self.updatePlaylist()
+		except:
+			tkMessageBox.showinfo('Import Text', 'Incorrect file format\nentries should be listed as:\n(TIME)||(SONG TITLE)||(SONG ARTIST)\nTime section can be left blank')
 
 		
 	def export_text(self):
+		self.delete_child_windows()
 		global playlist
 		
 		#If the playlist is empty
@@ -166,6 +184,7 @@ class Application(Frame):
 	def login_gmusic(self):
 
 		#login to gmusic
+		self.delete_child_windows()
 		self.gmusic_window = Toplevel(root)
 		self.gmusic_window.wm_title("Login")
 
@@ -214,6 +233,7 @@ class Application(Frame):
 		
 	def scrape(self):
 		#
+		self.delete_child_windows()
 		self.scrape_window = Toplevel(root)
 		self.scrape_window.wm_title("Enter Date and Time")
 		
@@ -319,7 +339,7 @@ class Application(Frame):
 		elif day_check is None:
 			self.scrape_error.set("Please enter a day between 1-31 in dd format.")
 		elif year_check is None:
-			self.scrape_error.set("Please enter a year past 2013 in yyyy format.")
+			self.scrape_error.set("Please enter a year after 2013 in yyyy format.")
 		elif start_check is None:
 			self.scrape_error.set("Please enter a valid start time in hh:mm format or hh:mm AM/PM format.")
 		elif end_check is None:
