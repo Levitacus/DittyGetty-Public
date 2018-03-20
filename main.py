@@ -214,8 +214,11 @@ class Application(Frame):
 		if not loginGmusic(self.playlist_username, self.playlist_password):
 			tkMessageBox.showinfo('Login Failed', 'Login Failure, please check your internet connection and try again')
 		else:
-			#get playlist name
+			
+			#close window asking for pass and email
+			self.gmusic_window.destroy()
 
+			#get playlist name
 			self.gmusic_window2 = Toplevel(root)
 			self.gmusic_window2.wm_title("Export")
 
@@ -299,7 +302,7 @@ class Application(Frame):
 
 		if failed_song_list:
 			str_failed_songs = ""
-			count = 0
+			count = 1
 			for songs in failed_song_list:
 				str_failed_songs += (str(count) + ": " + songs.toString() + "\n\n")
 				count += 1
