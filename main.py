@@ -308,11 +308,11 @@ class Application(Frame):
 				# day_regex = '[1-9]|0[1-9]|[1-2][1-9]|[3][0-1]'
 		
 		#The regex checks
-		month_check = re.match('[1-9]|0[1-9]|[1][0-2]', month)
-		day_check = re.match('[1-9]|0[1-9]|[1-2][0-9]|[3][0-1]', day)
-		year_check = re.match('20[0-9][0-9]', year)
-		start_check = re.match('([1-9]|[0-1][0-9]|[2][0-4]):[0-5][0-9]|([1-9]|[0-1][0-2]):[0-5][0-9](AM|PM|am|pm)', startTime)
-		end_check = re.match('([1-9]|[0-1][0-9]|[2][0-4]):[0-5][0-9]|([1-9]|[0-1][0-2]):[0-5][0-9](AM|PM|am|pm)', endTime)
+		month_check = re.match('0*([1-9]|0[1-9]|[1][0-2])$', month)
+		day_check = re.match('0*([1-9]|0[1-9]|[1-2][0-9]|[3][0-1])$', day)
+		year_check = re.match('20[0-9][0-9]$', year)
+		start_check = re.match('([1-9]|[0-1][0-9]|[2][0-4]):[0-5][0-9]|([1-9]|[0-1][0-2]):[0-5][0-9](AM|PM|am|pm)$', startTime)
+		end_check = re.match('([1-9]|[0-1][0-9]|[2][0-4]):[0-5][0-9]|([1-9]|[0-1][0-2]):[0-5][0-9](AM|PM|am|pm)$', endTime)
 		
 		if month_check is None:
 			self.scrape_error.set("Please enter a month between 1-12 in mm format.")
@@ -332,7 +332,7 @@ class Application(Frame):
 				self.updatePlaylist()
 				self.scrape_window.destroy()
 			except urllib2.URLError:
-				self.scrape_error.set("Cannot scrape that time for some reason")
+				self.scrape_error.set("No data available for selected time")
 			
 				
 	
