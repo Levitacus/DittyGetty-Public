@@ -1,32 +1,11 @@
-#from selenium import webdriver
-
-#from selenium.webdriver.common.by import By
-
-#from selenium.webdriver.support.ui import WebDriverWait
-
-#from selenium.webdriver.support import expected_conditions as EC
-
-#from selenium.webdriver.common.keys import Keys
-
 import time
-
 from helperFuncs import timeObject
-
-#This is unnecessary for now
-#from songInfo import scrapedSongInfo
 from songInfo import SongInfo
-
 import re
 import urllib2
 from bs4 import BeautifulSoup
 
-
-
-
-
 #full list of functions and code for parsing any npr station's schedule
-
-
 def parseListLabel(listName, label):
 	parsedList = list()
 	for element in listName:
@@ -149,7 +128,7 @@ def getList(month, day, year, start, end):
 	# startTime = "2:00"
 	# endTime = "14:00"
 
-
+	#site is hardcoded in right now, but will ask for station code later on
 	site = ('https://api.composer.nprstations.org/v1/widget/520a4969e1c85ef575dd2484/day?date=%d-%02d-%02d&callback=jQuery17205943383084192947_1518308649099&format=jsonp&_=1518310998172' % (year, month, day))
 
 	print site

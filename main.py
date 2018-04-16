@@ -2,6 +2,7 @@ from Tkinter import *
 from jpr import *
 from songInfo import *
 from gmusic import *
+from playlist import *
 import tkFileDialog
 import tkMessageBox
 import ttk
@@ -10,7 +11,7 @@ import urllib2
 
 #The current playlist that is viewed, needs to be global.
 
-playlist = list()
+playlist = Playlist()
 
 class Application(Frame):
 	
@@ -35,7 +36,7 @@ class Application(Frame):
 		
 
 	#Various callback functions for the homepage buttons
-	def add_song(self):
+	def add_song_option(self):
 
 		self.delete_child_windows()
 		self.add_window = Toplevel(root)
@@ -60,8 +61,8 @@ class Application(Frame):
 		self.artist_entry = Entry(self.add_window)
 		artist_label = Label(self.add_window, text="Artist Name")
 		
-		self.add_window.submit_button = Button(self.add_window, text="Submit", command=self.add_confirm)
-		
+		self.add_window.submit_button = Button(self.add_window, text="Submit", command=self.add_song)
+
 		#Error label
 		self.add_error_label = Label(self.add_window, textvariable=self.add_error)
 
@@ -76,7 +77,7 @@ class Application(Frame):
 		self.add_error_label.grid(row=3, column=0, columnspan=3)
 		
 	
-	def add_confirm(self):
+	def add_song(self):
 		global playlist
 
 		# error check for size of artist and song names
@@ -86,14 +87,14 @@ class Application(Frame):
 			self.add_error.set("The artist needs to be between 1 and 75 characters.")
 		else:
 			self.add_error.set("")
-			#"" is for the time, which if you're manually adding it, then it doesn't matter.
+			#'' in SongInfo is for the time, which if you're manually adding it, then it doesn't matter.
 			song = SongInfo(self.song_entry.get(), self.artist_entry.get(), '')
-			playlist.append(song)
+			#playlist.append(song)
+			playlist.add(song)
 			self.playlist_view.insert("", 'end', text=0, values=(song.songTime, song.songName, song.songArtist))
 			self.add_window.destroy()
 	
 	def helpbox(self):
-		global playlist
 		
 		self.help_window = Toplevel(root, width="500")
 		self.help_window.wm_title("Help")
@@ -107,19 +108,14 @@ class Application(Frame):
 			label1.grid(row=i, column=0, sticky=W)
 			label2.grid(row=i, column=1, sticky=W)
 		#help_label.grid(row=0, column=0, columnspan=2, rowspan=len(options))
-
-		# for song in playlist:
-			# print song.toString()
-		
 		
 	def remove_song(self):
 		global playlist
 		items = self.playlist_view.selection()
-		count = 0
+		#count = 0
 		for item in items:
-			#del playlist[item - count]
-			#print self.playlist_view.index(item)
-			del playlist[self.playlist_view.index(item) - count]
+			#del playlist[self.playlist_view.index(item) - count]
+			playlist.remove(self.playlist_view.index(item))
 			self.playlist_view.delete(item)
 			#print(self.playlist_view.get(item - count))
 			#count += 1
@@ -127,7 +123,8 @@ class Application(Frame):
 		
 	def clear_songs(self):
 		global playlist
-		playlist = list()
+		#playlist = list()
+		playlist.clear()
 		self.playlist_view.delete(*self.playlist_view.get_children())
 		print "Clear!"
 		
@@ -141,7 +138,8 @@ class Application(Frame):
 			tkMessageBox.showinfo('Import Text', 'Error: File Not Found')
 
 		#clear playlist
-		playlist = list()
+		#playlist = list()
+		playlist.clear()
 		self.playlist_view.delete(*self.playlist_view.get_children())
 		
 		try:
@@ -149,7 +147,8 @@ class Application(Frame):
 				trimmedLine = line.replace('\n', "")
 				nameArtist = trimmedLine.split("||")
 				song = SongInfo(nameArtist[1], nameArtist[2], nameArtist[0])
-				playlist.append(song)
+				#playlist.append(song)
+				playlist.add(song)
 
 			self.updatePlaylist()
 		except:
@@ -161,7 +160,7 @@ class Application(Frame):
 		global playlist
 		
 		#If the playlist is empty
-		if len(playlist) is 0:
+		if len(playlist.get()) is 0:
 			export_error_window = Toplevel(root)
 			export_error_window.wm_title("Error")
 			label = Label(export_error_window, text="Can't export an empty playlist.")
@@ -176,7 +175,7 @@ class Application(Frame):
 			if f is None:
 				return
 
-			for song in playlist:
+			for song in playlist.get():
 				f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
 
 			f.close()
@@ -293,10 +292,7 @@ class Application(Frame):
 		
 	#callback function for the submit_button for exporting to gmusic
 	def exportGmusic(self):
-		global playlist
-
 		self.playlistName = self.playlist_name_entry.get()
-
 
 		failed_song_list = uploadSongsGmusic(self.playlistName, playlist)
 
@@ -351,7 +347,7 @@ class Application(Frame):
 			month_int, day_int, year_int = int(month), int(day), int(year)
 			#call getList function from jpr.py
 			try:
-				playlist = getList(month_int, day_int, year_int, startTime, endTime)
+				playlist.set(getList(month_int, day_int, year_int, startTime, endTime))
 				self.updatePlaylist()
 				self.scrape_window.destroy()
 			except urllib2.URLError:
@@ -362,28 +358,25 @@ class Application(Frame):
 	#Updates the playlist in the viewer to match the playlist variable
 	def updatePlaylist(self):
 		global playlist
-		
-		# for song in playlist:
-			# print song
+	
 		self.playlist_view.delete(*self.playlist_view.get_children())
-		for song in playlist:
+		for song in playlist.get():
 			self.playlist_view.insert("", 'end', text=1, values=(song.songTime, song.songName, song.songArtist))
 		print 'update playlist was called'
 	
 		
 		
-	def createWidgets(self):
-		#self.playlist = list()
-	
+	def create_widgets(self):
+		
 		#help button
 		self.help_button = Button(self, text="Help")
 		self.help_button["command"] = self.helpbox
 		
 		self.help_button.grid(row=1, column=5, padx=5)
 	
-		#The eventual add button
+		#The add button
 		self.add_button = Button(self, text="Add Song")
-		self.add_button["command"] = self.add_song
+		self.add_button["command"] = self.add_song_option
 
 		self.add_button.grid(row=3, column=5, padx=5)
 		
@@ -467,9 +460,7 @@ class Application(Frame):
 		scrollbar.grid(row=2, column=4, rowspan=8, sticky="nsw")
 
 		#listbox callback for selecting multiple columns
-		
-		
-		self.createWidgets()
+		self.create_widgets()
 
 		self.playlist_label_name = Label(self, text="Playlist Viewer")
 		self.playlist_label_name.grid(row=1, column=2)
