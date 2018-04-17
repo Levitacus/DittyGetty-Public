@@ -33,8 +33,9 @@ def findStoreId(songList):
 
 #placeholder
 def acceptSong(realSongName, comparedSongName):
-	print realSongName
-	print comparedSongName
+	
+	print realSongName.encode('utf-8', 'backslashreplace')
+	print comparedSongName.encode('utf-8', 'backslashreplace')
 	print '\n'
 	return True
 			
