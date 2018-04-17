@@ -34,11 +34,22 @@ def findStoreId(songList):
 #placeholder
 def acceptSong(realSongName, comparedSongName):
 	
-	print realSongName.encode('utf-8', 'backslashreplace')
-	print comparedSongName.encode('utf-8', 'backslashreplace')
+	print realSongName
+	print comparedSongName
 	print '\n'
 	return True
 			
+
+def add_songs_existing(playlistID, idList):
+	 return api.add_songs_to_playlist(playlistID, idList)
+
+def upload_songs_existing_gmusic(playlistID, songArtistList):
+	storeIdList =  findStoreId(songArtistList)
+
+	if add_songs_existing(playlistID, storeIdList):
+		return failedSongs
+	else:
+		return False
 
 def initializePlaylist(playlistName, idList):
 	playlistId = api.create_playlist(playlistName, description=None, public=False)
@@ -53,6 +64,8 @@ def uploadSongsGmusic(playlistName, songArtistList):
 	else:
 		return False
 
+def gmusic_get_playlists():
+	return api.get_all_playlists()
 
 def loginGmusic(username, pword):
 	global api
