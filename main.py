@@ -137,8 +137,6 @@ class Application(Frame):
 		if file is None:
 			tkMessageBox.showinfo('Import Text', 'Error: File Not Found')
 
-		#clear playlist
-		#playlist = list()
 		playlist.clear()
 		self.playlist_view.delete(*self.playlist_view.get_children())
 		
@@ -161,12 +159,7 @@ class Application(Frame):
 		
 		#If the playlist is empty
 		if len(playlist.get()) is 0:
-			export_error_window = Toplevel(root)
-			export_error_window.wm_title("Error")
-			label = Label(export_error_window, text="Can't export an empty playlist.")
-			button = Button(export_error_window, text="Okay", command=export_error_window.destroy)
-			label.grid(row=0, column=0, padx=10, pady=10)
-			button.grid(row=1, column=0, padx=10)
+			tkMessageBox.showinfo('Export Text', "can't export an empty playlist.")
 			
 		
 		#If not empty, write to file
@@ -292,23 +285,53 @@ class Application(Frame):
 		
 	#callback function for the submit_button for exporting to gmusic
 	def exportGmusic(self):
+		global playlist
 		self.playlistName = self.playlist_name_entry.get()
+		
+		self.failed_song_list = uploadSongsGmusic(self.playlistName, playlist.get())
 
-		failed_song_list = uploadSongsGmusic(self.playlistName, playlist)
-
-		if failed_song_list:
+		if self.failed_song_list:
 			str_failed_songs = ""
 			count = 1
-			for songs in failed_song_list:
+			for songs in self.failed_song_list:
 				str_failed_songs += (str(count) + ": " + songs.toString() + "\n\n")
 				count += 1
-
-
-			tkMessageBox.showinfo('Playlist Creation', 'Creation of playlist: %s successful!\n\n Failed Songs:\n%s' % (self.playlistName, str_failed_songs))
+			
+			#create a new window that has the option to save to a textfile
+			self.missed_songs_window = Toplevel(root)
+			self.missed_songs_window.wm_title("Missed Songs")
+			
+			missed_string = ('Creation of playlist: %s successful!\n\n Failed Songs:\n%s' % (self.playlistName, str_failed_songs))
+			missed_songs_label = Label(self.missed_songs_window, text=missed_string)
+			ok_button = Button(self.missed_songs_window, text="Okay", command=self.missed_songs_window.destroy)
+			self.export_missed_songs_button = Button(self.missed_songs_window, text="Export to Textfile", command=self.export_missed_songs)
+			
+			#Place the label and the buttons.
+			missed_songs_label.grid(row=0, column=1, columnspan=3)
+			
+			ok_button.grid(row=1, column=0)
+			self.export_missed_songs_button.grid(row=1, column=3)
+			#tkMessageBox.showinfo('Playlist Creation', 'Creation of playlist: %s successful!\n\n Failed Songs:\n%s' % (self.playlistName, str_failed_songs))
 		else:
 			tkMessageBox.showinfo('Playlist Creation Error', 'Creation of playlist: %s unsuccessful!' % (self.playlistName))
 		
 		self.gmusic_window2.destroy()
+	
+	def export_missed_songs(self):
+		if len(self.failed_song_list) is 0:
+			tkMessageBox.showinfo('Export Text', "can't export an empty playlist.")
+		
+		#If not empty, write to file
+		else:
+			f = tkFileDialog.asksaveasfile(mode='w', defaultextension=".txt")
+			if f is None:
+				return
+
+			for song in self.failed_song_list:
+				f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
+
+			f.close()
+		self.missed_songs_window.destroy()
 		
 	#callback function for the scrape() submit_button
 	def getPlaylist(self):
