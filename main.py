@@ -181,11 +181,13 @@ class Application(Frame):
 		self.gmusic_window.wm_title("Login")
 
 		self.username = ""
-		self.playlist_username_entry = Entry(self.gmusic_window)
+		default_name = StringVar(root, value='patkmatts@gmail.com')
+		self.playlist_username_entry = Entry(self.gmusic_window, textvariable=default_name)
 		playlist_username_label = Label(self.gmusic_window, text="Email")
 
 		self.password = ""
-		self.playlist_password_entry = Entry(self.gmusic_window, show="*")
+		default_pass = StringVar(root, value='ztqiefdvkyuenkxm')
+		self.playlist_password_entry = Entry(self.gmusic_window, show="*", textvariable=default_pass)
 		playlist_password_label = Label(self.gmusic_window, text="Password")
 
 		self.gmusic_window.submit_button2 = Button(self.gmusic_window, text="Submit", command=self.export_gmusic)	
@@ -207,6 +209,8 @@ class Application(Frame):
 			tkMessageBox.showinfo('Login Failed', 'Login Failure, please check your internet connection and try again')
 		else:
 			
+			playlists_dict = gmusic_get_playlists()
+
 			#close window asking for pass and email
 			self.gmusic_window.destroy()
 
@@ -217,8 +221,18 @@ class Application(Frame):
 			self.playlistName = ""
 			self.playlist_name_entry = Entry(self.gmusic_window2)
 			playlist_name_label = Label(self.gmusic_window2, text="Enter Playlist Name Here")
+			self.playlists_listbox = Listbox(self.gmusic_window2, selectmode=SINGLE)
 
-			self.gmusic_window2.submit_button2 = Button(self.gmusic_window2, text="Submit", command=self.exportGmusic)	
+			for dicts in playlists_dict:
+				print(dicts['name'])
+				self.playlists_listbox.insert(END, dicts['name'])
+
+
+			self.playlists_listbox.grid(row=1, column=0, padx=50, pady=15)
+
+			#use lambda expression to pass arguments to exportGmusic function
+			self.gmusic_window2.submit_button2 = Button(self.gmusic_window2, text="Submit", command= lambda: self.exportGmusic(playlists_dict))	
+
 
 			playlist_name_label.grid(row=1, column=0)
 			self.playlist_name_entry.grid(row=2, column=0)	
@@ -284,11 +298,22 @@ class Application(Frame):
 		self.scrape_error_label.grid(row=6, column=0, columnspan=3)
 		
 	#callback function for the submit_button for exporting to gmusic
-	def exportGmusic(self):
+	def exportGmusic(self, playlists_dict):
 		global playlist
-		self.playlistName = self.playlist_name_entry.get()
-		
-		self.failed_song_list = uploadSongsGmusic(self.playlistName, playlist.get())
+			
+		select_tuple = self.playlists_listbox.curselection()
+		#if a playlist is selected
+		if(select_tuple):
+			playlist_select_index = int(select_tuple[0])
+			self.failed_song_list = upload_songs_existing_gmusic(playlists_dict[playlist_select_index]['id'], playlist.get())
+		else:
+			#no selection
+			playlist_select_index = 0
+			self.playlistName = self.playlist_name_entry.get()
+			self.failed_song_list = uploadSongsGmusic(self.playlistName, playlist.get())
+
+		print(playlist_select_index)
+
 
 		if self.failed_song_list:
 			str_failed_songs = ""
