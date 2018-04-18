@@ -34,9 +34,9 @@ def findStoreId(songList):
 #placeholder
 def acceptSong(realSongName, comparedSongName):
 	
-	print realSongName
-	print comparedSongName
-	print '\n'
+	#print realSongName
+	#print comparedSongName
+	#print '\n'
 	return True
 			
 

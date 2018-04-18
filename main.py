@@ -159,7 +159,7 @@ class Application(Frame):
 		
 		#If the playlist is empty
 		if len(playlist.get()) is 0:
-			tkMessageBox.showinfo('Export Text', "can't export an empty playlist.")
+			tkMessageBox.showinfo('Export Text', "Can't export an empty playlist.")
 			
 		
 		#If not empty, write to file
@@ -219,22 +219,22 @@ class Application(Frame):
 			self.gmusic_window2.wm_title("Export")
 
 			self.playlistName = ""
-			self.playlist_name_entry = Entry(self.gmusic_window2)
-			playlist_name_label = Label(self.gmusic_window2, text="Enter Playlist Name Here")
-			self.playlists_listbox = Listbox(self.gmusic_window2, selectmode=SINGLE)
+			self.playlist_name_entry = Entry(self.gmusic_window2, width=50)
+			playlist_name_label = Label(self.gmusic_window2, text="Choose pre-existing playlist to add to or enter a new playlist name.")
+			self.playlists_listbox = Listbox(self.gmusic_window2, selectmode=SINGLE, width=50)
 
 			for dicts in playlists_dict:
 				print(dicts['name'])
 				self.playlists_listbox.insert(END, dicts['name'])
 
 
-			self.playlists_listbox.grid(row=1, column=0, padx=50, pady=15)
+			self.playlists_listbox.grid(row=1, column=0, padx=5, pady=5, sticky='ew')
 
 			#use lambda expression to pass arguments to exportGmusic function
 			self.gmusic_window2.submit_button2 = Button(self.gmusic_window2, text="Submit", command= lambda: self.exportGmusic(playlists_dict))	
 
 
-			playlist_name_label.grid(row=1, column=0)
+			playlist_name_label.grid(row=0, column=0, sticky='ew')
 			self.playlist_name_entry.grid(row=2, column=0)	
 
 			self.gmusic_window2.submit_button2.grid(row=3, column=0)
@@ -334,8 +334,8 @@ class Application(Frame):
 			#Place the label and the buttons.
 			missed_songs_label.grid(row=0, column=1, columnspan=3)
 			
-			ok_button.grid(row=1, column=0)
-			self.export_missed_songs_button.grid(row=1, column=3)
+			ok_button.grid(row=1, column=1)
+			self.export_missed_songs_button.grid(row=1, column=2)
 			#tkMessageBox.showinfo('Playlist Creation', 'Creation of playlist: %s successful!\n\n Failed Songs:\n%s' % (self.playlistName, str_failed_songs))
 		else:
 			tkMessageBox.showinfo('Playlist Creation Error', 'Creation of playlist: %s unsuccessful!' % (self.playlistName))
@@ -344,7 +344,7 @@ class Application(Frame):
 	
 	def export_missed_songs(self):
 		if len(self.failed_song_list) is 0:
-			tkMessageBox.showinfo('Export Text', "can't export an empty playlist.")
+			tkMessageBox.showinfo('Export Text', "Can't export an empty playlist.")
 		
 		#If not empty, write to file
 		else:
@@ -410,7 +410,7 @@ class Application(Frame):
 		self.playlist_view.delete(*self.playlist_view.get_children())
 		for song in playlist.get():
 			self.playlist_view.insert("", 'end', text=1, values=(song.songTime, song.songName, song.songArtist))
-		print 'update playlist was called'
+		#print 'update playlist was called'
 	
 		
 		
