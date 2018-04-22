@@ -2,12 +2,15 @@ from Tkinter import *
 from jpr import *
 from songInfo import *
 from gmusic import *
+from threading import *
 from playlist import *
 import tkFileDialog
 import tkMessageBox
 import ttk
 import re
 import urllib2
+
+
 
 #The current playlist that is viewed, needs to be global.
 
@@ -464,7 +467,32 @@ class Application(Frame):
 
 		self.webscrape_button.grid(row=8, column=5, padx=5, pady=5)
 
-	
+	def b_down(self, event):
+		tv = event.widget
+		select = [tv.index(s) for s in tv.selection()]
+		select.append(tv.index(tv.identify_row(event.y)))
+		select.sort()
+		for i in range(select[0],select[-1]+1,1):
+			tv.selection_add(tv.get_children()[i])
+
+	#def b_down(self, event):
+	#	tv = event.widget
+	#	if tv.identify_row(event.y) not in tv.selection():
+	#		tv.selection_set(tv.identify_row(event.y))    
+
+	def b_up(self, event):
+		tv = event.widget
+		if tv.identify_row(event.y) in tv.selection():
+			tv.selection_set(tv.identify_row(event.y)) 
+
+	def b_move(self, event):
+		tv = event.widget
+		moveto = tv.index(tv.identify_row(event.y))    
+		for s in tv.selection():
+			tv.move(s, '', moveto)
+			#playlist.move(s, moveto)
+			
+			
 	def on_exit(self):
 		self.quit()
 	
@@ -472,8 +500,6 @@ class Application(Frame):
 		f = Frame.__init__(self, master, height=1280, width=1920)
 		self.grid()
 		master.protocol("WM_DELETE_WINDOW", self.on_exit)
-		
-		#label for playlist viewer
 		
 		
 		
@@ -512,6 +538,12 @@ class Application(Frame):
 
 		self.playlist_label_name = Label(self, text="Playlist Viewer")
 		self.playlist_label_name.grid(row=1, column=2)
+		
+		#playlist view movement
+		self.playlist_view.bind('<1>', self.b_down)
+		self.playlist_view.bind('<B1-Motion>', self.b_move)
+		self.playlist_view.bind('<ButtonRelease-1>', self.b_up)
+		
 		
 	
 	
