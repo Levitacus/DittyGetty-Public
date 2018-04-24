@@ -2,12 +2,15 @@ from Tkinter import *
 from jpr import *
 from songInfo import *
 from gmusic import *
+from threading import *
 from playlist import *
 import tkFileDialog
 import tkMessageBox
 import ttk
 import re
 import urllib2
+
+
 
 #The current playlist that is viewed, needs to be global.
 
@@ -95,6 +98,9 @@ class Application(Frame):
 			self.add_window.destroy()
 	
 	def helpbox(self):
+
+		for songs in playlist.get():
+			print songs.songName
 		
 		self.help_window = Toplevel(root, width="500")
 		self.help_window.wm_title("Help")
@@ -149,6 +155,7 @@ class Application(Frame):
 				playlist.add(song)
 
 			self.updatePlaylist()
+			self.update_logical_playlist()
 		except:
 			tkMessageBox.showinfo('Import Text', 'Incorrect file format\nentries should be listed as:\n(TIME)||(SONG TITLE)||(SONG ARTIST)\nTime section can be left blank')
 
@@ -542,16 +549,58 @@ class Application(Frame):
 
 		self.webscrape_button.grid(row=8, column=5, padx=5, pady=5)
 
+	def b_press(self, event):
+		tv = event.widget
+		if tv.identify_row(event.y) not in tv.selection():
+			tv.selection_set(tv.identify_row(event.y))    
+		
+	def shift_b_press(self, event):
+		tv = event.widget
+		select = [tv.index(s) for s in tv.selection()]
+		select.append(tv.index(tv.identify_row(event.y)))
+		select.sort()
+		for i in range(select[0],select[-1]+1,1):
+			 tv.selection_add(tv.get_children()[i])   
+
+	def b_release(self, event):
+		tv = event.widget
+		if tv.identify_row(event.y) in tv.selection():
+			tv.selection_set(tv.identify_row(event.y))
+		self.update_logical_playlist()
+			
+
+	def b_move(self, event):
+		tv = event.widget
+		moveto = tv.index(tv.identify_row(event.y))    
+		for s in tv.selection():
+			tv.move(s, '', moveto)
+			
+			
+	# def shift_b_release(self, event):
+		# pass
+		
+	def update_logical_playlist(self):
+		global playlist
+		
+		treeview_playlist = [self.playlist_view.item(child, "values") for child in self.playlist_view.get_children()]
+		
+		playlist_new = []
+
+		for song in treeview_playlist:
+			playlist_new.append(SongInfo(song[1], song[2], song[0]))
+
+		playlist.set(playlist_new)
 	
 	def on_exit(self):
 		self.quit()
+		
+	def pass_func(self, event):
+		pass
 	
 	def __init__(self, master=None):
 		f = Frame.__init__(self, master, height=1280, width=1920)
 		self.grid()
 		master.protocol("WM_DELETE_WINDOW", self.on_exit)
-		
-		#label for playlist viewer
 		
 		
 		
@@ -590,6 +639,16 @@ class Application(Frame):
 
 		self.playlist_label_name = Label(self, text="Playlist Viewer")
 		self.playlist_label_name.grid(row=1, column=2)
+		
+		#playlist view movement
+		self.playlist_view.bind('<1>', self.b_press)
+		self.playlist_view.bind('<B1-Motion>', self.b_move)
+		self.playlist_view.bind('<ButtonRelease-1>', self.b_release)
+		self.playlist_view.bind('<Shift-1>', self.pass_func)
+		self.playlist_view.bind('<Shift-ButtonRelease-1>', self.pass_func)
+		self.playlist_view.bind('<Control-1>', self.pass_func)
+		self.playlist_view.bind('<Control-ButtonRelease-1>', self.pass_func)
+		
 		
 	
 	
