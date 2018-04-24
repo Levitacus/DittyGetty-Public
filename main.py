@@ -152,6 +152,7 @@ class Application(Frame):
 				playlist.add(song)
 
 			self.updatePlaylist()
+			self.update_logical_playlist()
 		except:
 			tkMessageBox.showinfo('Import Text', 'Incorrect file format\nentries should be listed as:\n(TIME)||(SONG TITLE)||(SONG ARTIST)\nTime section can be left blank')
 
@@ -467,34 +468,45 @@ class Application(Frame):
 
 		self.webscrape_button.grid(row=8, column=5, padx=5, pady=5)
 
-	def b_down(self, event):
+	def b_press(self, event):
 		tv = event.widget
-		select = [tv.index(s) for s in tv.selection()]
-		select.append(tv.index(tv.identify_row(event.y)))
-		select.sort()
-		for i in range(select[0],select[-1]+1,1):
-			tv.selection_add(tv.get_children()[i])
+		if tv.identify_row(event.y) not in tv.selection():
+			tv.selection_set(tv.identify_row(event.y))    
+		
+	# def shift_b_press(self, event):
+		# tv = event.widget
+		# select = [tv.index(s) for s in tv.selection()]
+		# select.append(tv.index(tv.identify_row(event.y)))
+		# select.sort()
+		# for i in range(select[0],select[-1]+1,1):
+			# tv.selection_add(tv.get_children()[i])   
 
-	#def b_down(self, event):
-	#	tv = event.widget
-	#	if tv.identify_row(event.y) not in tv.selection():
-	#		tv.selection_set(tv.identify_row(event.y))    
-
-	def b_up(self, event):
+	def b_release(self, event):
 		tv = event.widget
 		if tv.identify_row(event.y) in tv.selection():
-			tv.selection_set(tv.identify_row(event.y)) 
+			tv.selection_set(tv.identify_row(event.y))
+			#playlist.move(tv.index(s), moveto)
+			
 
 	def b_move(self, event):
 		tv = event.widget
 		moveto = tv.index(tv.identify_row(event.y))    
 		for s in tv.selection():
 			tv.move(s, '', moveto)
-			#playlist.move(s, moveto)
 			
 			
+	# def shift_b_release(self, event):
+		# pass
+		
+	def update_logical_playlist(self):
+		#print self.playlist_view.get_children()
+		print "hi"
+	
 	def on_exit(self):
 		self.quit()
+		
+	def pass_func(self, event):
+		pass
 	
 	def __init__(self, master=None):
 		f = Frame.__init__(self, master, height=1280, width=1920)
@@ -540,9 +552,13 @@ class Application(Frame):
 		self.playlist_label_name.grid(row=1, column=2)
 		
 		#playlist view movement
-		self.playlist_view.bind('<1>', self.b_down)
+		self.playlist_view.bind('<1>', self.b_press)
 		self.playlist_view.bind('<B1-Motion>', self.b_move)
-		self.playlist_view.bind('<ButtonRelease-1>', self.b_up)
+		self.playlist_view.bind('<ButtonRelease-1>', self.b_release)
+		self.playlist_view.bind('<Shift-1>', self.pass_func)
+		self.playlist_view.bind('<Shift-ButtonRelease-1>', self.pass_func)
+		self.playlist_view.bind('<Control-1>', self.pass_func)
+		self.playlist_view.bind('<Control-ButtonRelease-1>', self.pass_func)
 		
 		
 	
