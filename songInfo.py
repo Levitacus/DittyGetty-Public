@@ -3,7 +3,7 @@ class SongInfo:
 	songArtist = "artist"
 	songTime = "00:00"
 
-	def __init__(self, name, artist, time):
+	def __init__(self, name, artist, time=''):
 		self.songName = name
 		self.songArtist = artist
 		self.songTime = time

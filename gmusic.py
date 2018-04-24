@@ -43,29 +43,61 @@ def acceptSong(realSongName, comparedSongName):
 def add_songs_existing(playlistID, idList):
 	 return api.add_songs_to_playlist(playlistID, idList)
 
-def upload_songs_existing_gmusic(playlistID, songArtistList):
-	storeIdList =  findStoreId(songArtistList)
+#def upload_songs_existing_gmusic(playlistID, songArtistList, existing=False, merge=False):
+	#storeIdList =  findStoreId(songArtistList)
 
-	if add_songs_existing(playlistID, storeIdList):
-		return failedSongs
-	else:
-		return False
+	#if add_songs_existing(playlistID, storeIdList):
+		#return failedSongs
+	#else:
+		#return False
 
 def initializePlaylist(playlistName, idList):
 	playlistId = api.create_playlist(playlistName, description=None, public=False)
 
 	return api.add_songs_to_playlist(playlistId, idList)
 
-def uploadSongsGmusic(playlistName, songArtistList):
+def uploadSongsGmusic(playlist_name_id, songArtistList, existing=False, merge=False):
 	storeIdList =  findStoreId(songArtistList)
+	print merge
 
-	if initializePlaylist(playlistName, storeIdList):
-		return failedSongs
+
+	if existing:
+		if merge:
+			playlists = api.get_all_user_playlist_contents()
+			for playlist_dict in playlists:
+				if playlist_dict['id'] == playlist_name_id:
+					playlist = playlist_dict
+					break
+			
+			current_trackIds = [track['trackId'] for track in playlist['tracks']]
+
+			for current_trackId in current_trackIds:
+				if current_trackId in storeIdList:
+					storeIdList.remove(current_trackId)
+
+		if add_songs_existing(playlist_name_id, storeIdList):
+
+			#if failedSongs is empty
+			if not failedSongs:
+				return True
+
+			return failedSongs
+		else:
+			return False
 	else:
-		return False
+		if initializePlaylist(playlist_name_id, storeIdList):
+			#if failedSongs is empty
+			if not failedSongs:
+				return True
+			return failedSongs
+		else:
+			return False
 
 def gmusic_get_playlists():
 	return api.get_all_playlists()
+
+def gmusic_get_playlists_content():
+	return api.get_all_user_playlist_contents()
 
 def loginGmusic(username, pword):
 	global api

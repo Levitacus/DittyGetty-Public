@@ -172,8 +172,71 @@ class Application(Frame):
 				f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
 
 			f.close()
+	
+	def import_gmusic(self):
+		self.playlist_username = self.playlist_username_entry.get()
+		self.playlist_password = self.playlist_password_entry.get()
 
-	def login_gmusic(self):
+		if not loginGmusic(self.playlist_username, self.playlist_password):
+			tkMessageBox.showinfo('Login Failed', 'Login Failure, please check your internet connection and try again')
+		else:
+			
+			playlists_dict = gmusic_get_playlists_content()
+
+			#close window asking for pass and email
+			self.gmusic_window.destroy()
+
+			#get playlist name
+			self.gmusic_window3 = Toplevel(root)
+			self.gmusic_window3.wm_title("Export")
+
+		
+
+
+			playlist_name_label = Label(self.gmusic_window3, text="Choose playlist to import")
+			self.playlists_listbox = Listbox(self.gmusic_window3, selectmode=SINGLE, width=50)
+
+			for dicts in playlists_dict:
+				print(dicts['name'])
+				self.playlists_listbox.insert(END, dicts['name'])
+
+		
+
+
+			self.playlists_listbox.grid(row=1, column=0, padx=5, pady=5, sticky='ew')
+
+			self.gmusic_window3.submit_button2 = Button(self.gmusic_window3, text="Submit", command= lambda: self.import_gmusic_run(playlists_dict))	
+
+
+			playlist_name_label.grid(row=0, column=0, sticky='ew')
+
+			self.gmusic_window3.submit_button2.grid(row=2, column=0)
+
+	def import_gmusic_run(self, playlists_dict):
+		global playlist
+			
+		select_tuple = self.playlists_listbox.curselection()
+		#if a playlist is selected
+		if(select_tuple):
+			playlist_select_index = int(select_tuple[0])
+			track_list = playlists_dict[playlist_select_index]['tracks']
+			
+			gmusic_songs = []
+
+			for track in track_list:
+				gmusic_songs.append(SongInfo(track['track']['title'], track['track']['artist']))
+
+			try:
+				playlist.set(gmusic_songs)
+				self.updatePlaylist()
+				self.scrape_window.destroy()
+			except urllib2.URLError:
+				self.scrape_error.set("No songs found in playlist")
+
+		else:
+			self.gmusic_window3.destroy()
+
+	def login_gmusic(self, command_arg):
 
 		#login to gmusic
 		self.delete_child_windows()
@@ -190,7 +253,7 @@ class Application(Frame):
 		self.playlist_password_entry = Entry(self.gmusic_window, show="*", textvariable=default_pass)
 		playlist_password_label = Label(self.gmusic_window, text="Password")
 
-		self.gmusic_window.submit_button2 = Button(self.gmusic_window, text="Submit", command=self.export_gmusic)	
+		self.gmusic_window.submit_button2 = Button(self.gmusic_window, text="Submit", command=command_arg)	
 
 		playlist_username_label.grid(row=1, column=0)
 		self.playlist_username_entry.grid(row=2, column=0)
@@ -227,17 +290,21 @@ class Application(Frame):
 				print(dicts['name'])
 				self.playlists_listbox.insert(END, dicts['name'])
 
-
+	
 			self.playlists_listbox.grid(row=1, column=0, padx=5, pady=5, sticky='ew')
+			
+			self.merge_bool = IntVar()
+			self.merge_check = Checkbutton(self.gmusic_window2, text="Merge(remove duplicates)", var=self.merge_bool)
 
 			#use lambda expression to pass arguments to exportGmusic function
 			self.gmusic_window2.submit_button2 = Button(self.gmusic_window2, text="Submit", command= lambda: self.exportGmusic(playlists_dict))	
 
 
 			playlist_name_label.grid(row=0, column=0, sticky='ew')
-			self.playlist_name_entry.grid(row=2, column=0)	
 
-			self.gmusic_window2.submit_button2.grid(row=3, column=0)
+			self.merge_check.grid(row=2, column=0)
+			self.playlist_name_entry.grid(row=3, column=0)	
+			self.gmusic_window2.submit_button2.grid(row=4, column=0)
 		
 		
 	def scrape(self):
@@ -305,7 +372,8 @@ class Application(Frame):
 		#if a playlist is selected
 		if(select_tuple):
 			playlist_select_index = int(select_tuple[0])
-			self.failed_song_list = upload_songs_existing_gmusic(playlists_dict[playlist_select_index]['id'], playlist.get())
+			self.playlistName = playlists_dict[playlist_select_index]['name']
+			self.failed_song_list = uploadSongsGmusic(playlists_dict[playlist_select_index]['id'], playlist.get(), existing=True, merge=self.merge_bool.get())
 		else:
 			#no selection
 			playlist_select_index = 0
@@ -314,8 +382,8 @@ class Application(Frame):
 
 		print(playlist_select_index)
 
-
-		if self.failed_song_list:
+		#if failed songs is a list and has entries
+		if self.failed_song_list and isinstance(self.failed_song_list, list):
 			str_failed_songs = ""
 			count = 1
 			for songs in self.failed_song_list:
@@ -337,6 +405,9 @@ class Application(Frame):
 			ok_button.grid(row=1, column=1)
 			self.export_missed_songs_button.grid(row=1, column=2)
 			#tkMessageBox.showinfo('Playlist Creation', 'Creation of playlist: %s successful!\n\n Failed Songs:\n%s' % (self.playlistName, str_failed_songs))
+		#if failed songs exists but has no entries
+		elif self.failed_song_list:
+			tkMessageBox.showinfo('Playlist Creation', 'Creation of playlist: %s Successful!' % (self.playlistName))
 		else:
 			tkMessageBox.showinfo('Playlist Creation Error', 'Creation of playlist: %s unsuccessful!' % (self.playlistName))
 		
@@ -446,6 +517,7 @@ class Application(Frame):
 
 		self.import_text_button.grid(row=10, column=1, pady=5)
 
+
 		#The export text button
 		self.export_text_button = Button(self, text="Export as Textfile")
 		self.export_text_button["command"] = self.export_text
@@ -454,9 +526,15 @@ class Application(Frame):
 
 		#The gmusic button
 		self.gMusic_button = Button(self, text="Export to Google Music")
-		self.gMusic_button["command"] = self.login_gmusic
+		self.gMusic_button["command"] = lambda: self.login_gmusic(self.export_gmusic)
 
-		self.gMusic_button.grid(row=10, column=3, padx=5,)
+		self.gMusic_button.grid(row=10, column=4, padx=5,)
+
+		#The import gmusic button
+		self.import_text_button = Button(self, text="Import From Google Music")
+		self.import_text_button["command"] = lambda: self.login_gmusic(self.import_gmusic)
+
+		self.import_text_button.grid(row=10, column=3, pady=5)
 
 		#The webscrape button
 		self.webscrape_button = Button(self, text="Import from Website")
