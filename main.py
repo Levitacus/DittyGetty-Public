@@ -476,19 +476,19 @@ class Application(Frame):
 		if tv.identify_row(event.y) not in tv.selection():
 			tv.selection_set(tv.identify_row(event.y))    
 		
-	# def shift_b_press(self, event):
-		# tv = event.widget
-		# select = [tv.index(s) for s in tv.selection()]
-		# select.append(tv.index(tv.identify_row(event.y)))
-		# select.sort()
-		# for i in range(select[0],select[-1]+1,1):
-			# tv.selection_add(tv.get_children()[i])   
+	def shift_b_press(self, event):
+		tv = event.widget
+		select = [tv.index(s) for s in tv.selection()]
+		select.append(tv.index(tv.identify_row(event.y)))
+		select.sort()
+		for i in range(select[0],select[-1]+1,1):
+			 tv.selection_add(tv.get_children()[i])   
 
 	def b_release(self, event):
 		tv = event.widget
 		if tv.identify_row(event.y) in tv.selection():
 			tv.selection_set(tv.identify_row(event.y))
-			self.update_logical_playlist()
+		self.update_logical_playlist()
 			
 
 	def b_move(self, event):
