@@ -98,6 +98,9 @@ class Application(Frame):
 			self.add_window.destroy()
 	
 	def helpbox(self):
+
+		for songs in playlist.get():
+			print songs.songName
 		
 		self.help_window = Toplevel(root, width="500")
 		self.help_window.wm_title("Help")
@@ -485,7 +488,7 @@ class Application(Frame):
 		tv = event.widget
 		if tv.identify_row(event.y) in tv.selection():
 			tv.selection_set(tv.identify_row(event.y))
-			#playlist.move(tv.index(s), moveto)
+			self.update_logical_playlist()
 			
 
 	def b_move(self, event):
@@ -499,8 +502,16 @@ class Application(Frame):
 		# pass
 		
 	def update_logical_playlist(self):
-		#print self.playlist_view.get_children()
-		print "hi"
+		global playlist
+		
+		treeview_playlist = [self.playlist_view.item(child, "values") for child in self.playlist_view.get_children()]
+		
+		playlist_new = []
+
+		for song in treeview_playlist:
+			playlist_new.append(SongInfo(song[1], song[2], song[0]))
+
+		playlist.set(playlist_new)
 	
 	def on_exit(self):
 		self.quit()
