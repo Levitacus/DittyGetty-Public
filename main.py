@@ -631,7 +631,7 @@ class Application(Frame):
 
 		scrollbar.config(command=self.playlist_view.yview)
 
-		self.playlist_view.grid(row=2, column=1, rowspan=8, columnspan=3, padx=5, sticky="nesw")
+		self.playlist_view.grid(row=2, column=1, rowspan=8, columnspan=4, padx=5, sticky="nesw")
 		scrollbar.grid(row=2, column=4, rowspan=8, sticky="nsw")
 
 		#listbox callback for selecting multiple columns
