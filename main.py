@@ -148,6 +148,7 @@ class Application(Frame):
 		
 		try:
 			for line in file:
+				line.encode('ascii', 'ignore')
 				trimmedLine = line.replace('\n', "")
 				nameArtist = trimmedLine.split("||")
 				song = SongInfo(nameArtist[1], nameArtist[2], nameArtist[0])
@@ -231,12 +232,12 @@ class Application(Frame):
 			gmusic_songs = []
 
 			for track in track_list:
-				gmusic_songs.append(SongInfo(track['track']['title'], track['track']['artist']))
+				gmusic_songs.append(SongInfo(track['track']['title'].encode('ascii', 'ignore'), track['track']['artist'].encode('ascii', 'ignore')))
 
 			try:
 				playlist.set(gmusic_songs)
 				self.updatePlaylist()
-				self.scrape_window.destroy()
+				#self.scrape_window.destroy()
 			except urllib2.URLError:
 				self.scrape_error.set("No songs found in playlist")
 

@@ -20,7 +20,7 @@ def findElementClass(elementTag, className, soup):
 	content = list()
 	for element in elements:
 		#need to encode to utf-8 to fix the problem
-		content.append(element.text.encode("utf-8"))
+		content.append(element.text)
 
 	return content
 
@@ -104,8 +104,8 @@ def nprByTime(beginTime, endTime, soup):
 	i = 0
 
 	for times in songArtistList:
-
-		song = SongInfo(songNameList[i], songArtistList[i], songTimeList[i])
+		#encode in ascii to get rid of encode errors
+		song = SongInfo(songNameList[i].encode('ascii', 'ignore'), songArtistList[i].encode('ascii', 'ignore'), songTimeList[i].encode('ascii', 'ignore'))
 
 		scrapedSongList.append(song)
 
