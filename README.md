@@ -54,32 +54,32 @@ To login to Google Music through DittyGetty, you must set up an app password.
 
 To do this first go to My Account from whatever Google email you use to access Google Music from.
 
-![Add Account button](https://imgur.com/a0Huqhz)
+![Add Account button](https://i.imgur.com/a0Huqhz.png)
 
 
 From there: go to sign in and security
 
-![Sign in and Security](https://imgur.com/icmMhL0)
+![Sign in and Security](https://i.imgur.com/icmMhL0.png)
 
 
 Then turn on 2 step verification if it's not already on and add your phone.
 
-![2 Step Verification](https://imgur.com/8ZGQ4kn)
+![2 Step Verification](https://i.imgur.com/8ZGQ4kn.png)
 
 
 Once 2 Step Verification is on, Click App Password just below it.
 
-![App Password](https://imgur.com/oz8MuAu)
+![App Password](https://i.imgur.com/oz8MuAu.png)
 
 
 Click Select App and make a custom app called DittyGetty:
 
-![Custom App](https://imgur.com/lLzCXCj)
+![Custom App](https://i.imgur.com/lLzCXCj.png)
 
 
 Click Generate and from there you'll be given a 16 character password you can use to log in through DittyGetty.
 
-![App Password](https://imgur.com/oGM38qe)
+![App Password](https://i.imgur.com/oGM38qe.png)
 
 Write this password down as you'll need it whenever you need to login.
 
