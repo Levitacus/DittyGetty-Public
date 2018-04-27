@@ -72,7 +72,7 @@ Once 2 Step Verification is on, Click App Password just below it.
 ![App Password](https://i.imgur.com/oz8MuAu.png)
 
 
-Click Select App and make a custom app called DittyGetty:
+Click Select App then Other and make a custom app called DittyGetty:
 
 ![Custom App](https://i.imgur.com/lLzCXCj.png)
 
@@ -82,5 +82,5 @@ Click Generate and from there you'll be given a 16 character password you can us
 ![App Password](https://i.imgur.com/oGM38qe.png)
 
 Write this password down as you'll need it whenever you need to login.
-After you have this App Password, you may disable 2 factor authentication and it will remain usable.
+After you have this App Password, you may disable 2-step verification and the password will remain usable.
 
