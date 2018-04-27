@@ -82,4 +82,5 @@ Click Generate and from there you'll be given a 16 character password you can us
 ![App Password](https://i.imgur.com/oGM38qe.png)
 
 Write this password down as you'll need it whenever you need to login.
+After you have this App Password, you may disable 2 factor authentication and it will remain usable.
 
