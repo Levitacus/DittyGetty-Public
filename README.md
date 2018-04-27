@@ -13,7 +13,7 @@ If you plan on executing DittyGetty from the command prompt you must have Python
 
 The following libraries are required to run the program:
 
-BeautifulSoup https://www.crummy.com/software/BeautifulSoup/bs4/doc/#
+BeautifulSoup https://www.crummy.com/software/BeautifulSoup/bs4/doc/#  
 gmusicapi https://unofficial-google-music-api.readthedocs.io/en/latest/
 
 Download libraries with pip: 
@@ -28,9 +28,9 @@ Mac OS and Linux:
 $ sudo python get-pip.py
 ```
 Windows:
-'''
+```
 $ python get-pip.py
-'''
+```
 
 If you have pip all ready to go:
 ```
