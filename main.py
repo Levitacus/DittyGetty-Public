@@ -18,14 +18,6 @@ playlist = Playlist()
 
 class Application(Frame):
 	
-	#These aren't working atm
-	# def limitSongSize(self):
-		# value = self.songVar.get()
-		# if len(value) > 20: songVar.set(value[:20])
-	
-	# def limitArtistSize(self):
-		# value = self.artistVar.get()
-		# if len(value) > 20: artistVar.set(value[:20])
 	
 	#deletes child windows of root
 	def delete_child_windows(self):
@@ -65,6 +57,8 @@ class Application(Frame):
 		artist_label = Label(self.add_window, text="Artist Name")
 		
 		self.add_window.submit_button = Button(self.add_window, text="Submit", command=self.add_song)
+		#bind enter to submit button
+		self.add_window.bind("<Return>", lambda e: self.add_song())
 
 		#Error label
 		self.add_error_label = Label(self.add_window, textvariable=self.add_error)
@@ -181,7 +175,11 @@ class Application(Frame):
 
 			f.close()
 	
-	def import_gmusic(self):
+	def import_gmusic(self, event=None):
+
+		if self.submit_button2['state'] == 'disabled':
+			return
+
 		self.playlist_username = self.playlist_username_entry.get()
 		self.playlist_password = self.playlist_password_entry.get()
 
@@ -243,6 +241,21 @@ class Application(Frame):
 
 		else:
 			self.gmusic_window3.destroy()
+	
+	#enable login button function
+	def button_enable(self, *args):
+
+		username = self.default_name.get()
+		password = self.default_pass.get()
+
+		if username and password:
+			self.submit_button2.config(state='normal')
+		else:
+			self.submit_button2.config(state='disabled')
+
+	#def button_bind_check(self, dependent_button, command_arg):
+		#if button['state'] == 'normal':
+			#command_arg
 
 	def login_gmusic(self, command_arg):
 
@@ -252,16 +265,21 @@ class Application(Frame):
 		self.gmusic_window.wm_title("Login")
 
 		self.username = ""
-		default_name = StringVar(root, value='patkmatts@gmail.com')
-		self.playlist_username_entry = Entry(self.gmusic_window, textvariable=default_name)
+		self.default_name = StringVar(root)
+		self.default_pass = StringVar(root)
+		self.default_name.trace('w', self.button_enable)
+		self.default_pass.trace('w', self.button_enable)
+
+		self.playlist_username_entry = Entry(self.gmusic_window, textvariable=self.default_name)
 		playlist_username_label = Label(self.gmusic_window, text="Email")
 
 		self.password = ""
-		default_pass = StringVar(root, value='ztqiefdvkyuenkxm')
-		self.playlist_password_entry = Entry(self.gmusic_window, show="*", textvariable=default_pass)
+		self.playlist_password_entry = Entry(self.gmusic_window, show="*", textvariable=self.default_pass)
 		playlist_password_label = Label(self.gmusic_window, text="Password")
 
-		self.gmusic_window.submit_button2 = Button(self.gmusic_window, text="Submit", command=command_arg)	
+		self.submit_button2 = Button(self.gmusic_window, text="Submit", command=command_arg, state='disabled')	
+
+		self.gmusic_window.bind("<Return>", command_arg)
 
 		playlist_username_label.grid(row=1, column=0)
 		self.playlist_username_entry.grid(row=2, column=0)
@@ -269,10 +287,13 @@ class Application(Frame):
 		playlist_password_label.grid(row=1, column=2)
 		self.playlist_password_entry.grid(row=2, column=2)	
 
-		self.gmusic_window.submit_button2.grid(row=4, column=1, pady=15, sticky="s")
+		self.submit_button2.grid(row=4, column=1, pady=15, sticky="s")
 		
-	def export_gmusic(self):
+	def export_gmusic(self, event=None):
 		
+		if self.submit_button2['state'] == 'disabled':
+			return
+
 		self.playlist_username = self.playlist_username_entry.get()
 		self.playlist_password = self.playlist_password_entry.get()
 
@@ -290,8 +311,10 @@ class Application(Frame):
 			self.gmusic_window2.wm_title("Export")
 
 			self.playlistName = ""
-			self.playlist_name_entry = Entry(self.gmusic_window2, width=50)
+			default_name = StringVar(root, value='New playlist name')
+			self.playlist_name_entry = Entry(self.gmusic_window2, width=50, textvariable=default_name)
 			playlist_name_label = Label(self.gmusic_window2, text="Choose pre-existing playlist to add to or enter a new playlist name.")
+			#self.playlist_entry_label = Label(self.gmusic_window2)
 			self.playlists_listbox = Listbox(self.gmusic_window2, selectmode=SINGLE, width=50)
 
 			for dicts in playlists_dict:
@@ -304,13 +327,14 @@ class Application(Frame):
 			self.merge_bool = IntVar()
 			self.merge_check = Checkbutton(self.gmusic_window2, text="Merge(remove duplicates)", var=self.merge_bool)
 
-			#use lambda expression to pass arguments to exportGmusic function
-			self.gmusic_window2.submit_button2 = Button(self.gmusic_window2, text="Submit", command= lambda: self.exportGmusic(playlists_dict))	
+			#use lambda expression to pass arguments to export_gmusic_run function
+			self.gmusic_window2.submit_button2 = Button(self.gmusic_window2, text="Submit", command= lambda: self.export_gmusic_run(playlists_dict))	
 
 
 			playlist_name_label.grid(row=0, column=0, sticky='ew')
 
 			self.merge_check.grid(row=2, column=0)
+			#self.playlist_entry_label.grid(row=3, column=0)
 			self.playlist_name_entry.grid(row=3, column=0)	
 			self.gmusic_window2.submit_button2.grid(row=4, column=0)
 		
@@ -326,31 +350,34 @@ class Application(Frame):
 		self.scrape_error = StringVar()
 		
 		#t.month_entry = Entry(t, textvariable=self.month)
-		self.month_entry = Entry(self.scrape_window)
+		self.month_entry = EntryAdvanced(self.scrape_window, 'MM')
 		month_label = Label(self.scrape_window, text="Enter Month here")
 		
 		#t.day_entry = Entry(t, textvariable=self.day)
-		self.day_entry = Entry(self.scrape_window)
+		self.day_entry = EntryAdvanced(self.scrape_window, 'DD')
 		day_label = Label(self.scrape_window, text="Enter Day here")
 		
 		#t.year_entry = Entry(t, textvariable=self.year)
-		self.year_entry = Entry(self.scrape_window)
+		self.year_entry = EntryAdvanced(self.scrape_window, 'YYYY')
 		year_label = Label(self.scrape_window, text="Enter Year here")
 		
-		self.startTime_entry = Entry(self.scrape_window)
+		self.startTime_entry = EntryAdvanced(self.scrape_window, '00:00AM')
 		startTime_label = Label(self.scrape_window, text="Start Time")
 		
-		self.endTime_entry = Entry(self.scrape_window)
+		self.endTime_entry = EntryAdvanced(self.scrape_window, '00:00AM')
 		endTime_label = Label(self.scrape_window, text="End Time")
 		
 		hyphen_label = Label(self.scrape_window, text="---")
 		
 		#important that the callback function here just references the command, not passing it
 		self.scrape_window.submit_button = Button(self.scrape_window, text="Submit", command=self.getPlaylist)
-		
+		#bind enter key to submit button
+		self.scrape_window.bind("<Return>", lambda e: self.getPlaylist())		
+
 		#error label
 		self.scrape_error_label = Label(self.scrape_window, textvariable=self.scrape_error)
 		
+
 		#place all of the widgets
 		month_label.grid(row=1, column=0)
 		self.month_entry.grid(row=2, column=0)
@@ -373,7 +400,7 @@ class Application(Frame):
 		self.scrape_error_label.grid(row=6, column=0, columnspan=3)
 		
 	#callback function for the submit_button for exporting to gmusic
-	def exportGmusic(self, playlists_dict):
+	def export_gmusic_run(self, playlists_dict):
 		global playlist
 			
 		select_tuple = self.playlists_listbox.curselection()
@@ -499,25 +526,25 @@ class Application(Frame):
 		self.help_button = Button(self, text="Help")
 		self.help_button["command"] = self.helpbox
 		
-		self.help_button.grid(row=1, column=5, padx=5)
+		self.help_button.grid(row=1, column=6, padx=5)
 	
 		#The add button
 		self.add_button = Button(self, text="Add Song")
 		self.add_button["command"] = self.add_song_option
 
-		self.add_button.grid(row=3, column=5, padx=5)
+		self.add_button.grid(row=3, column=6, padx=5)
 		
 		#The remove button
 		self.remove_button = Button(self, text="Remove Song")
 		self.remove_button["command"] = self.remove_song
 
-		self.remove_button.grid(row=4, column=5, padx=5)
+		self.remove_button.grid(row=4, column=6, padx=5)
 		
 		#The clear button
 		self.clear_button = Button(self, text="Clear Songs")
 		self.clear_button["command"] = self.clear_songs
 
-		self.clear_button.grid(row=5, column=5, padx=5)
+		self.clear_button.grid(row=5, column=6, padx=5)
 		
 		#The import text button
 		self.import_text_button = Button(self, text="Import as Textfile")
@@ -548,7 +575,7 @@ class Application(Frame):
 		self.webscrape_button = Button(self, text="Import from Website")
 		self.webscrape_button["command"] = self.scrape
 
-		self.webscrape_button.grid(row=8, column=5, padx=5, pady=5)
+		self.webscrape_button.grid(row=8, column=6, padx=5, pady=5)
 
 	def b_press(self, event):
 		tv = event.widget
@@ -591,6 +618,18 @@ class Application(Frame):
 			playlist_new.append(SongInfo(song[1], song[2], song[0]))
 
 		playlist.set(playlist_new)
+
+	def sort_playlist_artist(self):
+		playlist.get().sort(key=lambda song: song.songArtist)
+		self.updatePlaylist()
+
+	def sort_playlist_name(self):
+		playlist.get().sort(key=lambda song: song.songName)
+		self.updatePlaylist()
+
+	def sort_playlist_time(self):
+		playlist.get().sort(key=lambda song: timeObject(song.songTime).totalMinutes())
+		self.updatePlaylist()
 	
 	def on_exit(self):
 		self.quit()
@@ -623,9 +662,9 @@ class Application(Frame):
 		self.playlist_view.column("zero", width=150)
 		self.playlist_view.column("one", width=250)
 		self.playlist_view.column("two", width=250)
-		self.playlist_view.heading("zero", text="Time")
-		self.playlist_view.heading("one", text="Name")
-		self.playlist_view.heading("two", text="Artist")
+		self.playlist_view.heading("zero", text="Time", command=self.sort_playlist_time)
+		self.playlist_view.heading("one", text="Name", command=self.sort_playlist_name)
+		self.playlist_view.heading("two", text="Artist", command=self.sort_playlist_artist)
 
 		#to get rid of first empty column
 		self.playlist_view['show'] = 'headings'
@@ -633,7 +672,7 @@ class Application(Frame):
 		scrollbar.config(command=self.playlist_view.yview)
 
 		self.playlist_view.grid(row=2, column=1, rowspan=8, columnspan=4, padx=5, sticky="nesw")
-		scrollbar.grid(row=2, column=4, rowspan=8, sticky="nsw")
+		scrollbar.grid(row=2, column=5, rowspan=8, sticky="nsw")
 
 		#listbox callback for selecting multiple columns
 		self.create_widgets()
@@ -650,13 +689,45 @@ class Application(Frame):
 		self.playlist_view.bind('<Control-1>', self.pass_func)
 		self.playlist_view.bind('<Control-ButtonRelease-1>', self.pass_func)
 		
-		
+#for advanced entry fields, can have placeholder values and enable/disable buttons
+class EntryAdvanced(Entry):
+	def __init__(self, master=None, placeholder="DEFAULT TEXT", button_connect=None):
+		Entry.__init__(self, master)
+
+		self.placeholder = placeholder
+		self.fg_color = 'grey'
+		self.default_fg_color = self['fg']
+		self.connected_button = button_connect
+
+		self.bind("<FocusIn>", self.focus)
+		self.bind("<FocusOut>", self.unfocus)
+
+		self.put_placeholder()
+
+	def put_placeholder(self):
+		self.insert(0, self.placeholder)
+		self['fg'] = self.fg_color
+
+	def remove_placeholder(self):
+		self.delete('0', 'end')
+		self['fg'] = self.default_fg_color
+
+	def focus(self, *args):
+		if self['fg'] == self.fg_color:
+			self.remove_placeholder()
+			if self.connected_button:
+				self.connected_button.config(state='normal')
+
+	def unfocus(self, *args):
+		if not self.get():
+			self.put_placeholder()
+			if self.connected_button:
+				self.connected_button.config(state='disabled')
 	
 	
 
 root = Tk()
 root.title("DittyGetty")
-
 app = Application(master=root)
 app.mainloop()
 

@@ -17,6 +17,7 @@ class Playlist:
 		
 	def get(self):
 		return self.playlist
+		
 	
 	#def move(self)
 
