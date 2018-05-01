@@ -14,6 +14,7 @@ class SongInfo:
 	def toSearchString(self):
 		return ("%s %s" % (self.songName, self.songArtist))
 
+
 		#This class is rendered useless for now
 class scrapedSongInfo:
 	songName = "name"
