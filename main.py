@@ -4,16 +4,19 @@ from songInfo import *
 from gmusic import *
 from threading import *
 from playlist import *
+from config import Config
+from cryptography.fernet import Fernet
 import tkFileDialog
 import tkMessageBox
 import ttk
 import re
 import urllib2
+import string
 
 
 
 #The current playlist that is viewed, needs to be global.
-
+#Probably not good that it's global, but whatever...
 playlist = Playlist()
 
 class Application(Frame):
@@ -132,27 +135,31 @@ class Application(Frame):
 		global playlist
 		self.delete_child_windows()
 		filename = tkFileDialog.askopenfilename()
-		file = open(filename, 'r')
-
+		try:
+			file = open(filename, 'r')
+		except:
+			file = None
+			
 		if file is None:
 			tkMessageBox.showinfo('Import Text', 'Error: File Not Found')
+			
+		else:	
+			playlist.clear()
+			self.playlist_view.delete(*self.playlist_view.get_children())
+			
+			try:
+				for line in file:
+					line.encode('ascii', 'ignore')
+					trimmedLine = line.replace('\n', "")
+					nameArtist = trimmedLine.split("||")
+					song = SongInfo(nameArtist[1], nameArtist[2], nameArtist[0])
+					#playlist.append(song)
+					playlist.add(song)
 
-		playlist.clear()
-		self.playlist_view.delete(*self.playlist_view.get_children())
-		
-		try:
-			for line in file:
-				line.encode('ascii', 'ignore')
-				trimmedLine = line.replace('\n', "")
-				nameArtist = trimmedLine.split("||")
-				song = SongInfo(nameArtist[1], nameArtist[2], nameArtist[0])
-				#playlist.append(song)
-				playlist.add(song)
-
-			self.updatePlaylist()
-			self.update_logical_playlist()
-		except:
-			tkMessageBox.showinfo('Import Text', 'Incorrect file format\nentries should be listed as:\n(TIME)||(SONG TITLE)||(SONG ARTIST)\nTime section can be left blank')
+				self.updatePlaylist()
+				self.update_logical_playlist()
+			except:
+				tkMessageBox.showinfo('Import Text', 'Incorrect file format\nentries should be listed as:\n(TIME)||(SONG TITLE)||(SONG ARTIST)\nTime section can be left blank')
 
 		
 	def export_text(self):
@@ -186,6 +193,16 @@ class Application(Frame):
 		if not loginGmusic(self.playlist_username, self.playlist_password):
 			tkMessageBox.showinfo('Login Failed', 'Login Failure, please check your internet connection and try again')
 		else:
+		
+			self.json_config['username'] = self.playlist_username
+			
+			self.key = Fernet.generate_key()
+			cipher_suite = Fernet(self.key)
+			
+			#self.json_config['key'] = self.key
+			#self.json_config['password'] = str(cipher_suite.encrypt(str(self.playlist_password.encode('utf-8').decode('utf-8'))))
+			
+			self.encrypted_pass = cipher_suite.encrypt(self.playlist_password)
 			
 			playlists_dict = gmusic_get_playlists_content()
 
@@ -264,7 +281,26 @@ class Application(Frame):
 		self.gmusic_window = Toplevel(root)
 		self.gmusic_window.wm_title("Login")
 
-		self.username = ""
+
+		try:
+			#get the username
+			self.username = self.json_config['username']
+		except:
+			self.username = ''
+		try:
+			#decrypt the password with the key and Fernet
+			
+			#self.key = self.json_config['key']
+			
+			cipher_suite = Fernet(self.key)
+			
+			self.password = cipher_suite.decrypt(self.encrypted_pass)
+			#self.password = str(cipher_suite.decrypt(str(self.json_config['password'].encode('utf-8').decode('utf-8'))))
+			#print type(self.password)
+		except Exception as e:
+			#print e
+			self.password = ''
+			
 		self.default_name = StringVar(root)
 		self.default_pass = StringVar(root)
 		self.default_name.trace('w', self.button_enable)
@@ -273,11 +309,14 @@ class Application(Frame):
 		self.playlist_username_entry = Entry(self.gmusic_window, textvariable=self.default_name)
 		playlist_username_label = Label(self.gmusic_window, text="Email")
 
-		self.password = ""
 		self.playlist_password_entry = Entry(self.gmusic_window, show="*", textvariable=self.default_pass)
 		playlist_password_label = Label(self.gmusic_window, text="Password")
 
-		self.submit_button2 = Button(self.gmusic_window, text="Submit", command=command_arg, state='disabled')	
+		self.submit_button2 = Button(self.gmusic_window, text="Submit", command=command_arg, state='disabled')
+		
+		#set the stringargs
+		self.default_name.set(self.username)
+		self.default_pass.set(self.password)
 
 		self.gmusic_window.bind("<Return>", command_arg)
 
@@ -300,6 +339,16 @@ class Application(Frame):
 		if not loginGmusic(self.playlist_username, self.playlist_password):
 			tkMessageBox.showinfo('Login Failed', 'Login Failure, please check your internet connection and try again')
 		else:
+		
+			self.json_config['username'] = self.playlist_username
+			
+			self.key = Fernet.generate_key()
+			cipher_suite = Fernet(self.key)
+			
+			#self.json_config['key'] = self.key
+			#self.json_config['password'] = str(cipher_suite.encrypt(str(self.playlist_password.encode('utf-8').decode('utf-8'))))
+			
+			self.encrypted_pass = cipher_suite.encrypt(self.playlist_password)
 			
 			playlists_dict = gmusic_get_playlists()
 
@@ -631,13 +680,21 @@ class Application(Frame):
 		playlist.get().sort(key=lambda song: timeObject(song.songTime).totalMinutes())
 		self.updatePlaylist()
 	
+
 	def on_exit(self):
+		global playlist
+		playlist_dict = playlist.to_dict()
+		#print playlist_dict
+		self.json_config['playlist'] = playlist_dict
+		#print(self.json_config)
+		self.json_config.save()
 		self.quit()
 		
 	def pass_func(self, event):
 		pass
 	
 	def __init__(self, master=None):
+		global playlist
 		f = Frame.__init__(self, master, height=1280, width=1920)
 		self.grid()
 		master.protocol("WM_DELETE_WINDOW", self.on_exit)
@@ -650,8 +707,21 @@ class Application(Frame):
 		#self.playlist_viewer_artist = Listbox(self, exportselection=0, selectmode=MULTIPLE, height=30, width=25, yscrollcommand=scrollbar.set)
 		
 		#self.updatePlaylist()
+        
+        #json file object
+		self.json_config = Config()
+        
+        #load json as a dict
+		self.json_config.load()
+		#print self.json_config
+		try:
+			playlist.to_playlist((self.json_config['playlist']))
+			#print playlist
+		except KeyError:
+			print "Hey"
+			pass
+			
 		
-
 		#self.playlist_viewer_name.grid(row=2, column=1, rowspan=8, sticky="nesw")
 		#self.playlist_viewer_artist.grid(row=2, column=2, rowspan=8, sticky="nesw")
 
@@ -689,6 +759,11 @@ class Application(Frame):
 		self.playlist_view.bind('<Control-1>', self.pass_func)
 		self.playlist_view.bind('<Control-ButtonRelease-1>', self.pass_func)
 		
+
+		#update playlist
+		self.updatePlaylist()
+		
+
 #for advanced entry fields, can have placeholder values and enable/disable buttons
 class EntryAdvanced(Entry):
 	def __init__(self, master=None, placeholder="DEFAULT TEXT", button_connect=None):
