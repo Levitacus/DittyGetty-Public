@@ -5,11 +5,13 @@ from gmusic import *
 from threading import *
 from playlist import *
 from config import Config
+from cryptography.fernet import Fernet
 import tkFileDialog
 import tkMessageBox
 import ttk
 import re
 import urllib2
+import string
 
 
 
@@ -133,27 +135,31 @@ class Application(Frame):
 		global playlist
 		self.delete_child_windows()
 		filename = tkFileDialog.askopenfilename()
-		file = open(filename, 'r')
-
+		try:
+			file = open(filename, 'r')
+		except:
+			file = None
+			
 		if file is None:
 			tkMessageBox.showinfo('Import Text', 'Error: File Not Found')
+			
+		else:	
+			playlist.clear()
+			self.playlist_view.delete(*self.playlist_view.get_children())
+			
+			try:
+				for line in file:
+					line.encode('ascii', 'ignore')
+					trimmedLine = line.replace('\n', "")
+					nameArtist = trimmedLine.split("||")
+					song = SongInfo(nameArtist[1], nameArtist[2], nameArtist[0])
+					#playlist.append(song)
+					playlist.add(song)
 
-		playlist.clear()
-		self.playlist_view.delete(*self.playlist_view.get_children())
-		
-		try:
-			for line in file:
-				line.encode('ascii', 'ignore')
-				trimmedLine = line.replace('\n', "")
-				nameArtist = trimmedLine.split("||")
-				song = SongInfo(nameArtist[1], nameArtist[2], nameArtist[0])
-				#playlist.append(song)
-				playlist.add(song)
-
-			self.updatePlaylist()
-			self.update_logical_playlist()
-		except:
-			tkMessageBox.showinfo('Import Text', 'Incorrect file format\nentries should be listed as:\n(TIME)||(SONG TITLE)||(SONG ARTIST)\nTime section can be left blank')
+				self.updatePlaylist()
+				self.update_logical_playlist()
+			except:
+				tkMessageBox.showinfo('Import Text', 'Incorrect file format\nentries should be listed as:\n(TIME)||(SONG TITLE)||(SONG ARTIST)\nTime section can be left blank')
 
 		
 	def export_text(self):
@@ -187,6 +193,16 @@ class Application(Frame):
 		if not loginGmusic(self.playlist_username, self.playlist_password):
 			tkMessageBox.showinfo('Login Failed', 'Login Failure, please check your internet connection and try again')
 		else:
+		
+			self.json_config['username'] = self.playlist_username
+			
+			self.key = Fernet.generate_key()
+			cipher_suite = Fernet(self.key)
+			
+			#self.json_config['key'] = self.key
+			#self.json_config['password'] = str(cipher_suite.encrypt(str(self.playlist_password.encode('utf-8').decode('utf-8'))))
+			
+			self.encrypted_pass = cipher_suite.encrypt(self.playlist_password)
 			
 			playlists_dict = gmusic_get_playlists_content()
 
@@ -265,7 +281,25 @@ class Application(Frame):
 		self.gmusic_window = Toplevel(root)
 		self.gmusic_window.wm_title("Login")
 
-		self.username = ""
+		try:
+			#get the username
+			self.username = self.json_config['username']
+		except:
+			self.username = ''
+		try:
+			#decrypt the password with the key and Fernet
+			
+			#self.key = self.json_config['key']
+			
+			cipher_suite = Fernet(self.key)
+			
+			self.password = cipher_suite.decrypt(self.encrypted_pass)
+			#self.password = str(cipher_suite.decrypt(str(self.json_config['password'].encode('utf-8').decode('utf-8'))))
+			#print type(self.password)
+		except Exception as e:
+			#print e
+			self.password = ''
+			
 		self.default_name = StringVar(root)
 		self.default_pass = StringVar(root)
 		self.default_name.trace('w', self.button_enable)
@@ -274,11 +308,14 @@ class Application(Frame):
 		self.playlist_username_entry = Entry(self.gmusic_window, textvariable=self.default_name)
 		playlist_username_label = Label(self.gmusic_window, text="Email")
 
-		self.password = ""
 		self.playlist_password_entry = Entry(self.gmusic_window, show="*", textvariable=self.default_pass)
 		playlist_password_label = Label(self.gmusic_window, text="Password")
 
-		self.submit_button2 = Button(self.gmusic_window, text="Submit", command=command_arg, state='disabled')	
+		self.submit_button2 = Button(self.gmusic_window, text="Submit", command=command_arg, state='disabled')
+		
+		#set the stringargs
+		self.default_name.set(self.username)
+		self.default_pass.set(self.password)
 
 		self.gmusic_window.bind("<Return>", command_arg)
 
@@ -301,6 +338,16 @@ class Application(Frame):
 		if not loginGmusic(self.playlist_username, self.playlist_password):
 			tkMessageBox.showinfo('Login Failed', 'Login Failure, please check your internet connection and try again')
 		else:
+		
+			self.json_config['username'] = self.playlist_username
+			
+			self.key = Fernet.generate_key()
+			cipher_suite = Fernet(self.key)
+			
+			#self.json_config['key'] = self.key
+			#self.json_config['password'] = str(cipher_suite.encrypt(str(self.playlist_password.encode('utf-8').decode('utf-8'))))
+			
+			self.encrypted_pass = cipher_suite.encrypt(self.playlist_password)
 			
 			playlists_dict = gmusic_get_playlists()
 
