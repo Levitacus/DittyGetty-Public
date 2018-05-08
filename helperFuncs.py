@@ -1,9 +1,9 @@
 class timeObject:
-
-	def __init__(self):
+	
+	def __init__(self, stringTime='00:00'):
 		self.hour = 0
 		self.minute = 0
-	
+		self.stringToTime(stringTime)
 
 	def stringToTime(self, stringTime):
 		PM = 0
@@ -54,7 +54,9 @@ class timeObject:
 
 	def toString(self):
 		return ("%02d:%02d" % (self.hour, self.minute))
-		
+
+	def totalMinutes(self):
+		return self.hour * 60 + self.minute
 		
 
 #time1 = TimeObject()

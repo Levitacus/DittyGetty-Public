@@ -20,6 +20,7 @@ class Playlist:
 	def get(self):
 		return self.playlist
 		
+
 	def to_dict(self):
 		times = []
 		songs = []
