@@ -281,6 +281,7 @@ class Application(Frame):
 		self.gmusic_window = Toplevel(root)
 		self.gmusic_window.wm_title("Login")
 
+
 		try:
 			#get the username
 			self.username = self.json_config['username']
@@ -758,9 +759,11 @@ class Application(Frame):
 		self.playlist_view.bind('<Control-1>', self.pass_func)
 		self.playlist_view.bind('<Control-ButtonRelease-1>', self.pass_func)
 		
+
 		#update playlist
 		self.updatePlaylist()
 		
+
 #for advanced entry fields, can have placeholder values and enable/disable buttons
 class EntryAdvanced(Entry):
 	def __init__(self, master=None, placeholder="DEFAULT TEXT", button_connect=None):
