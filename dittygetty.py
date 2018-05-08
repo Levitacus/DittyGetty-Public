@@ -49,7 +49,7 @@ def playlist_add(config, song, artist):
 
     playlist_dict = temp_playlist.to_dict()
     #print playlist_dict
-    config['playlist'] = playlist_dict
+    config['playlist_cli'] = playlist_dict
     config.save()
 
     click.echo('Song: %s. Artist: %s. \n' %(song, artist))
@@ -57,17 +57,32 @@ def playlist_add(config, song, artist):
 @playlist.command('display')
 @pass_config
 def playlist_get_dir(config):
-    '''Displays current playlist'''
+    '''Displays playlist, default is active playlist'''
     temp_playlist = Playlist()
 
     try:
-        temp_playlist.to_playlist((config['playlist']))
+        temp_playlist.to_playlist((config['playlist_cli']))
         #print playlist
     except KeyError:
         print "Hey"
 
     for songs in temp_playlist.get():
 	print(songs.toString())
+
+@playlist.command('clear')
+@pass_config
+def playlist_get_dir(config):
+    '''Clears playlist, default is active playlist'''
+
+    try:
+        temp_playlist = Playlist()
+
+        config['playlist'] = temp_playlist.to_dict()
+        config.save()
+
+        click.echo('Active playlist clear successful')
+    except:
+        click.echo('ERROR: Active playlist clear unsuccessful') 
 
 @playlist.command('get_dir')
 @pass_config
