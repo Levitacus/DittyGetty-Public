@@ -8,6 +8,8 @@ class Config(dict):
 		# gives the path to the JSON file, which is where this is located.
 		#self.config = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile( inspect.currentframe() ))[0])).join('config.json')
 
+		if not os.path.exists(click.get_app_dir(APP_NAME)):
+			os.makedirs(click.get_app_dir(APP_NAME))
 		self.config = os.path.join(click.get_app_dir(APP_NAME), 'config.json')
 		#self.config = os.path(os.curdir()) + 'config.json'
         

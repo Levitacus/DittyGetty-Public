@@ -15,6 +15,7 @@ The following libraries are required to run the program:
 
 BeautifulSoup https://www.crummy.com/software/BeautifulSoup/bs4/doc/#  
 gmusicapi https://unofficial-google-music-api.readthedocs.io/en/latest/
+cryptography https://cryptography.io/en/latest/ for storing the password temporarily.
 
 Download libraries with pip: 
 To check if you have pip installed:
@@ -36,6 +37,7 @@ If you have pip all ready to go:
 ```
 $ pip install beautifulsoup4
 $ pip install gmusicapi
+$ pip install cryptography
 
 ```
 
