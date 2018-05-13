@@ -58,7 +58,7 @@ def playlist_add(config, song, artist):
     click.echo('Song: %s. Artist: %s. \n' %(song, artist))
 
 @playlist.command('display')
-@click.option('--ff', is_flag=True, default=False, help="Displays the playlist in the file format(HH:MM||SongName||ArtistName). Can be output into a file then imported again.")
+@click.option('--ff', is_flag=True, default=False, help="Displays the playlist in the file format(HH:MM||SongName||ArtistName). Can be output into a file for import later.")
 #@click.option('--file', help = "Displays the playlist in a file.")
 @pass_config
 def playlist_display(config, ff):
@@ -95,44 +95,30 @@ def playlist_clear(config):
         click.echo('ERROR: Active playlist clear unsuccessful') 
 
 @entry_point.command('import')
-@click.option('--jpr', '-j', help='Imports a playlist from jpr requires date input "MM-DD-YYYY"')
-@click.option('--file', '-f', help='Imports a textfile, give path of textfile')
+#@click.option('--jpr', '-j', help='Imports a playlist from jpr requires date input "MM-DD-YYYY"')
+#@click.option('--file', '-f', help='Imports a textfile, give path of textfile')
+@click.argument('date')
 @click.option('--t', help='Starting time for parse', default="00:00")
-@click.option('--et', help='Ending time for parse --t is required for this option', default="23:59")
+@click.option('--et', help='Ending time for parse', default="23:59")
 @pass_config
-def playlist_import(config, jpr, file, t, et):
+def playlist_import(config, date, t, et):
 	'''
-	imports a playlist from NPR or textfile
-    
+	Imports a playlist from NPR or textfile
+    Requires a date in the formate MM-DD-YYYY
 	'''
 
 	temp_playlist = Playlist()
-	if jpr:
-		try:
-			tokens = date.split('-')
-			print(tokens)
-			month = int(tokens[0])
-			day = int(tokens[1])
-			year = int(tokens[2])
-			temp_playlist.set(getList(month, day, year, t, et))
-			
-		except:
-			raise click.UsageError('Invalid arguments, requires DATE input "MM-DD-YYYY"')
+	try:
+		tokens = date.split('-')
+		print(tokens)
+		month = int(tokens[0])
+		day = int(tokens[1])
+		year = int(tokens[2])
+		temp_playlist.set(getList(month, day, year, t, et))
 		
-	
-	elif file:
-		try:
-			with open(file, 'r') as f:
-				for line in f:
-					line.encode('ascii', 'ignore')
-					trimmedLine = line.replace('\n', "")
-					nameArtist = trimmedLine.split("||")
-					song = SongInfo(nameArtist[1], nameArtist[2], nameArtist[0])
-					temp_playlist.add(song)
-					
-		except FileNotFoundException:
-			print "%s not found." %(file)
-    
+	except:
+		raise click.UsageError('Invalid arguments, requires DATE input "MM-DD-YYYY"')
+			
 	if len(temp_playlist.playlist) != 0:
 		playlist_dict = temp_playlist.to_dict()
 		
@@ -141,38 +127,82 @@ def playlist_import(config, jpr, file, t, et):
 	else:
 		print "No playlist found."
 
-@entry_point.command('export')
-@click.option('--gmusic', '-g', help="Export current playlist to google music")
-@click.option('--file', '-f', help="Export current playlist to a text file fileName")
+@entry_point.command('read')
+@click.argument('file')
 @pass_config
-def playlist_export(config, gmusic, file):
+def playlist_read(config, file):
 	'''
-    Exports the active playlist to google music or a textfile.
+	Reads a playlist from textfile
+	Each line in the file must be in the format 
+		time||song||artist
+	'''
+
+	temp_playlist = Playlist()
+	try:
+		with open(file, 'r') as f:
+			for line in f:
+				line.encode('ascii', 'ignore')
+				trimmed_line = line.replace('\n', "")
+				name_artist = trimmed_line.split("||")
+				song = SongInfo(name_artist[1], name_artist[2], name_artist[0])
+				temp_playlist.add(song)
+				
+	except FileNotFoundException:
+		print "%s not found." %(file)
+    
+	if len(temp_playlist.playlist) != 0:
+		playlist_dict = temp_playlist.to_dict()
+		
+		config['playlist_cli'] = playlist_dict
+		config.save()
+	else:
+		print "No playlist found."
+		
+@entry_point.command('write')
+@click.argument('file')
+@pass_config
+def playlist_write(config, file):
+	'''
+    Writes the active playlist to the file with the designated name
+	Will overwrite any previous data in that file
     '''
 	temp_playlist = Playlist()
 		
 	try:
 		temp_playlist.to_playlist((config['playlist_cli']))
 		
-		if file:
-			with open(file, 'w') as f:
-				for song in temp_playlist.get():
-					f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
-		
-		if gmusic:
-			login = click.prompt('Enter Google Music username: ')
-			password = click.prompt('Enter Google Music password: ', hide_input=True)
-
-			loginGmusic(login, password)
-
-			uploadSongsGmusic(gmusic, temp_playlist.get())
+		with open(file, 'w') as f:
+			for song in temp_playlist.get():
+				f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
 	except KeyError:
 		pass
 	except Exception as e:
 		print e
-		raise click.UsageError('Invalid arguments: need a flag.')
-	
+		
+@entry_point.command('export')
+@click.argument('playlist_name')
+#@click.option('--gmusic', '-g', help="Export active playlist to google music")
+@pass_config
+def playlist_export(config, playlist_name):
+	'''
+    Exports the active playlist to google music
+    '''
+	temp_playlist = Playlist()
+		
+	try:
+		temp_playlist.to_playlist((config['playlist_cli']))
+		
+		login = click.prompt('Enter Google Music username: ')
+		password = click.prompt('Enter Google Music password: ', hide_input=True)
 
+		loginGmusic(login, password)
+
+		uploadSongsGmusic(playlist_name, temp_playlist.get())
+	except KeyError:
+		pass
+	except Exception as e:
+		print e
+		raise click.UsageError('Invalid login.')
 
 @playlist.command('get_dir')
 @pass_config
