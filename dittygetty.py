@@ -98,12 +98,13 @@ def playlist_clear(config):
 
 @entry_point.command('import')
 #@click.option('--jpr', '-j', help='Imports a playlist from jpr requires date input "MM-DD-YYYY"')
-#@click.option('--file', '-f', help='Imports a textfile, give path of textfile')
+#@click.option('--file', '--f', help='Imports scraped data directly to a file')
 @click.argument('date')
 @click.option('--t', help='Starting time for parse', default="00:00")
 @click.option('--et', help='Ending time for parse', default="23:59")
+@click.option('--f', help='File: Option to save imported songs to a file rather than the active playlist')
 @pass_config
-def playlist_import(config, date, t, et):
+def playlist_import(config, date, t, et, f):
 	'''
 	Imports a playlist from NPR or textfile
     Requires a date in the formate MM-DD-YYYY
@@ -121,8 +122,20 @@ def playlist_import(config, date, t, et):
 		temp_playlist.set(getList(month, day, year, t, et))
 	except:
 		raise click.UsageError('Invalid arguments, requires DATE input "MM-DD-YYYY"')
-			
-	if len(temp_playlist.playlist) != 0:
+
+	if f and len(temp_playlist.playlist) != 0:
+		
+		try:
+		
+			with open(f, 'w') as f:
+				for song in temp_playlist.get():
+					f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
+		except KeyError:
+			pass
+		except Exception as e:
+			print e
+		
+	elif len(temp_playlist.playlist) != 0:
 		playlist_dict = temp_playlist.to_dict()
 		
 		config['playlist_cli'] = playlist_dict
