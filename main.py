@@ -419,9 +419,9 @@ class Application(Frame):
 		hyphen_label = Label(self.scrape_window, text="---")
 		
 		#important that the callback function here just references the command, not passing it
-		self.scrape_window.submit_button = Button(self.scrape_window, text="Submit", command=self.getPlaylist)
+		self.scrape_window.submit_button = Button(self.scrape_window, text="Submit", command=self.get_playlist)
 		#bind enter key to submit button
-		self.scrape_window.bind("<Return>", lambda e: self.getPlaylist())		
+		self.scrape_window.bind("<Return>", lambda e: self.get_playlist())		
 
 		#error label
 		self.scrape_error_label = Label(self.scrape_window, textvariable=self.scrape_error)
@@ -514,7 +514,7 @@ class Application(Frame):
 		self.missed_songs_window.destroy()
 		
 	#callback function for the scrape() submit_button
-	def getPlaylist(self):
+	def get_playlist(self):
 		global playlist
 		
 		month = self.month_entry.get()
