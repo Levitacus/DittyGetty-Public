@@ -799,12 +799,15 @@ class EntryAdvanced(Entry):
 			if self.connected_button:
 				self.connected_button.config(state='disabled')
 	
-	
+def main():
+	root = Tk()
+	root.title("DittyGetty")
+	app = Application(master=root)
+	app.mainloop()
 
-root = Tk()
-root.title("DittyGetty")
-app = Application(master=root)
-app.mainloop()
+	#Destroys after the mainloop is finished
+	root.destroy()
 
-#Destroys after the mainloop is finished
-root.destroy()
+if __name__ == "main":
+	main()
+

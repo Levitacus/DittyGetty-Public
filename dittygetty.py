@@ -1,5 +1,7 @@
 import click
 import os
+import sys
+import dg_gui
 from config import Config
 from playlist import *
 from songInfo import *
@@ -111,11 +113,12 @@ def playlist_import(config, date, t, et):
 	try:
 		tokens = date.split('-')
 		print(tokens)
+		print t
+		print et
 		month = int(tokens[0])
 		day = int(tokens[1])
 		year = int(tokens[2])
 		temp_playlist.set(getList(month, day, year, t, et))
-		
 	except:
 		raise click.UsageError('Invalid arguments, requires DATE input "MM-DD-YYYY"')
 			
@@ -127,6 +130,16 @@ def playlist_import(config, date, t, et):
 	else:
 		print "No playlist found."
 
+@entry_point.command('gui')
+@pass_config
+def open_gui(config):
+	'''
+	Imports a playlist from NPR or textfile
+    Requires a date in the formate MM-DD-YYYY
+	'''
+
+	dg_gui.main()
+
 @entry_point.command('read')
 @click.argument('file')
 @pass_config
@@ -137,18 +150,7 @@ def playlist_read(config, file):
 		time||song||artist
 	'''
 
-	temp_playlist = Playlist()
-	try:
-		with open(file, 'r') as f:
-			for line in f:
-				line.encode('ascii', 'ignore')
-				trimmed_line = line.replace('\n', "")
-				name_artist = trimmed_line.split("||")
-				song = SongInfo(name_artist[1], name_artist[2], name_artist[0])
-				temp_playlist.add(song)
-				
-	except FileNotFoundException:
-		print "%s not found." %(file)
+	temp_playlist = read_playlist(file)
     
 	if len(temp_playlist.playlist) != 0:
 		playlist_dict = temp_playlist.to_dict()
@@ -181,28 +183,54 @@ def playlist_write(config, file):
 		
 @entry_point.command('export')
 @click.argument('playlist_name')
+@click.option('--f',  help="File: Export a file to Gmusic rather than the active playlist")
+@click.option('--e', is_flag=True, default=False, help="Add Existing: Add songs to an existing playlist.")
+@click.option('--m', is_flag=True, default=False, help="Merge: If adding to an existing playlist, duplicate songs will not be added")
 #@click.option('--gmusic', '-g', help="Export active playlist to google music")
 @pass_config
-def playlist_export(config, playlist_name):
+def playlist_export(config, f, e, m, playlist_name):
 	'''
     Exports the active playlist to google music
     '''
 	temp_playlist = Playlist()
+	success = False
 		
 	try:
-		temp_playlist.to_playlist((config['playlist_cli']))
+		if f:
+			temp_playlist = read_playlist(f)
+		else:
+			temp_playlist.to_playlist((config['playlist_cli']))
 		
-		login = click.prompt('Enter Google Music username: ')
-		password = click.prompt('Enter Google Music password: ', hide_input=True)
+		if not cli_login():
+			raise click.ClickException('Invalid Google Music Account Login')
+		
+		if(e):
+			playlists_dict = gmusic_get_playlists()
 
-		loginGmusic(login, password)
+			playlist_id = 0
+			for dicts in playlists_dict:
+				if(dicts['name'] == playlist_name):
+					playlist_id = dicts['id']
+			
+			if(playlist_id):
+				success = upload_gmusic_loading(playlist_id, temp_playlist.get(), e, m)
+			else:
+				click.echo('Could not find existing playlist:  %s, creating new playlist' % playlist_name)
+				success = upload_gmusic_loading(playlist_name, temp_playlist.get())
 
-		uploadSongsGmusic(playlist_name, temp_playlist.get())
+		else:
+			click.echo('Creating new playlist: %s' % playlist_name)
+			success = upload_gmusic_loading(playlist_name, temp_playlist.get())
+
+		if(success):
+			click.echo('Export successful, songs added to: %s' % playlist_name)
+		else:
+			raise click.ClickException('Export failed')
+
 	except KeyError:
 		pass
-	except Exception as e:
-		print e
-		raise click.UsageError('Invalid login.')
+	#except Exception as e:
+		#raise click.ClickException('Export failed')
 
 @playlist.command('get_dir')
 @pass_config
@@ -223,7 +251,76 @@ def playlist_write_dir(config):
 
 entry_point.add_command(playlist)
 
-    
+
+def read_playlist(file):
+	'''
+	Tries to read a playlist from a given file
+	prints error if it fails
+	returns playlist object
+	'''
+	temp_playlist = Playlist()
+	try:
+		with open(file, 'r') as f:
+			for line in f:
+				line.encode('ascii', 'ignore')
+				trimmed_line = line.replace('\n', "")
+				name_artist = trimmed_line.split("||")
+				song = SongInfo(name_artist[1], name_artist[2], name_artist[0])
+				temp_playlist.add(song)
+	except IOError:
+		raise click.UsageError("%s not found." %(file))
+		return Playlist()
+	except:
+		raise click.UsageError("No playlist found in %s." %(file))
+		return Playlist()
+
+	return temp_playlist
+
+def cli_login():
+	'''
+	Prompts user for login information and returns
+	results of login
+	'''
+
+	login = click.prompt('Enter Google Music username: ')
+	password = click.prompt('Enter Google Music password: ', hide_input=True)
+
+	return loginGmusic(login, password)
+
+def upload_gmusic_loading(playlist_name_id, songs_list, existing=False, merge=False):
+	ids_list = []
+	failed_songs = []
+
+	for i, song in enumerate(songs_list):
+		song_id = find_store_id(song)
+
+		if(song_id):
+			ids_list.append(song_id)
+		else:
+			failed_songs.append(song)
+		
+		print_loading_bar(i, len(songs_list) - 1)
+
+	return upload_ids_gmusic(playlist_name_id, ids_list, existing, merge)
+
+
+def print_loading_bar (iteration, total, length = 20, fill = '█'):
+	"""
+	Call in a loop to create terminal progress bar
+	@params:
+	iteration   - Required  : current iteration (Int)
+	total       - Required  : total iterations (Int)
+	length      - Optional  : character length of bar (Int)
+	fill        - Optional  : bar fill character (Str)
+	"""
+	percent = ("{0:." + str(2) + "f}").format(100 * (iteration / float(total)))
+	filledLength = int(length * iteration // total)
+	bar = fill * filledLength + '-' * (length - filledLength)
+	sys.stdout.write('\rExporting Songs: |%s| %s%% Complete' % (bar, percent))
+	sys.stdout.flush()
+	# Print New Line on Complete
+	if iteration >= total: 
+		print()
 
 if __name__ == '__main__':
 	entry_point()

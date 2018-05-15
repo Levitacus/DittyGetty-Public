@@ -16,7 +16,7 @@ def findTrackElement(searchDict, element):
 	return finalList
 
 #returns list of ids for given songs
-def findStoreId(songList):
+def find_store_ids(songList):
 	idList = list()
 	for songs in songList:
 		search = api.search(songs.toSearchString(), max_results=4)
@@ -30,6 +30,17 @@ def findStoreId(songList):
 			continue
 			
 	return idList
+
+def find_store_id(song):
+	search = api.search(song.toSearchString(), max_results=4)
+
+	try:
+		if acceptSong(song.songName, findTrackElement(search, 'title')[0]):
+			song_id = findTrackElement(search, 'storeId')[0]
+	except (IndexError):
+		return None
+			
+	return song_id
 
 #placeholder
 def acceptSong(realSongName, comparedSongName):
@@ -56,10 +67,29 @@ def initializePlaylist(playlistName, idList):
 
 	return api.add_songs_to_playlist(playlistId, idList)
 
-def uploadSongsGmusic(playlist_name_id, songArtistList, existing=False, merge=False):
-	storeIdList =  findStoreId(songArtistList)
-	print merge
+def upload_ids_gmusic(playlist_name_id, store_id_list, existing=False, merge=False):
 
+	if existing:
+		if merge:
+			playlists = api.get_all_user_playlist_contents()
+			for playlist_dict in playlists:
+				if playlist_dict['id'] == playlist_name_id:
+					playlist = playlist_dict
+					break
+			
+			current_trackIds = [track['trackId'] for track in playlist['tracks']]
+
+			for current_trackId in current_trackIds:
+				if current_trackId in store_id_list:
+					store_id_list.remove(current_trackId)
+
+		return add_songs_existing(playlist_name_id, store_id_list)
+
+	else:
+		return initializePlaylist(playlist_name_id, store_id_list)
+
+def uploadSongsGmusic(playlist_name_id, songArtistList, existing=False, merge=False):
+	storeIdList = find_store_ids(songArtistList)
 
 	if existing:
 		if merge:
