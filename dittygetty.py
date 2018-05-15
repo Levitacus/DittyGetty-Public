@@ -16,7 +16,9 @@ pass_config = click.make_pass_decorator(Config, ensure=True)
 @click.group()
 @pass_config
 def entry_point(config):
-    '''entry point to the cli'''
+    '''
+	DittyGetty is a tool used to scrape playlists from JPR, modify those playlists, and export those playlists to Google Music.
+	'''
     if not os.path.exists(click.get_app_dir(APP_NAME)):
 	os.makedirs(click.get_app_dir(APP_NAME))
     if not config.load():
@@ -147,8 +149,8 @@ def playlist_import(config, date, t, et, f):
 @pass_config
 def open_gui(config):
 	'''
-	Imports a playlist from NPR or textfile
-    Requires a date in the formate MM-DD-YYYY
+	Opens the graphical user interface to allow for playlst manipulation there.
+	**Warning: Will halt this window.
 	'''
 
 	dg_gui.main()
