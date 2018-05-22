@@ -187,7 +187,7 @@ crontab 0 2 * * * dittygetty import 4-14-2018 --f "test.txt"
 
 Using today keyword, runs at 11:59 PM every day and imports that day to a file named that date EX: 2018-05-22.txt 
 ```
-crontab 59 23 * * * dittygetty import today --f today
+crontab 59 23 * * * dittygetty import --f today today
 ```
 
 ## Logging in with Google Music
