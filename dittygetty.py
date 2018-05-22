@@ -113,8 +113,7 @@ def playlist_clear(config):
 def playlist_import(config, date, t, et, f):
 	'''
 	Imports a playlist from NPR or textfile
-    Requires a date in the format MM-DD-YYYY
-	Or 'today' or 'yesterday' keywords
+    Requires a date in the format MM-DD-YYYY, 'today' or 'yesterday' keywords
 	'''
 
 	temp_playlist = Playlist()
@@ -137,16 +136,11 @@ def playlist_import(config, date, t, et, f):
 			
 		else:
 			tokens = date.split('-')
-			print(tokens)
 			month = int(tokens[0])
 			day = int(tokens[1])
 			year = int(tokens[2])
 		print t
 		print et
-    
-		month = int(tokens[0])
-		day = int(tokens[1])
-		year = int(tokens[2])
 		jpr = NPR("520a4969e1c85ef575dd2484")
 		temp_playlist.set(jpr.scrape_run(month, day, year, t, et))
 	except:
