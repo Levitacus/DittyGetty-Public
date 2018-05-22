@@ -2,11 +2,12 @@ import click
 import os
 import sys
 import dg_gui
+from daily_playlist import DailyPlaylist
 from config import Config
 from playlist import *
 from songInfo import *
 from gmusic import *
-from jpr import *
+from npr import NPR
 
 APP_NAME = 'dittygetty'
 CONFIG_NAME = 'config.json'
@@ -119,7 +120,8 @@ def playlist_import(config, date, t, et, f):
 		month = int(tokens[0])
 		day = int(tokens[1])
 		year = int(tokens[2])
-		temp_playlist.set(getList(month, day, year, t, et))
+		jpr = NPR("520a4969e1c85ef575dd2484")
+		temp_playlist.set(jpr.scrape_run(month, day, year, t, et))
 	except:
 		raise click.UsageError('Invalid arguments, requires DATE input "MM-DD-YYYY"')
 

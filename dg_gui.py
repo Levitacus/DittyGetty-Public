@@ -799,6 +799,7 @@ class EntryAdvanced(Entry):
 				self.connected_button.config(state='disabled')
 	
 def main():
+	global root
 	root = Tk()
 	root.title("DittyGetty")
 	app = Application(master=root)
@@ -807,6 +808,6 @@ def main():
 	#Destroys after the mainloop is finished
 	root.destroy()
 
-if __name__ == "main":
+if __name__ == "__main__":
 	main()
 
