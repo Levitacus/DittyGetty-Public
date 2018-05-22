@@ -15,7 +15,7 @@ The following libraries are required to run the program:
 
 BeautifulSoup https://www.crummy.com/software/BeautifulSoup/bs4/doc/#  
 gmusicapi https://unofficial-google-music-api.readthedocs.io/en/latest/
-cryptography https://cryptography.io/en/latest/ for storing the password temporarily.
+cryptography https://cryptography.io/en/latest/ for storing the password temporarily. 
 
 Download libraries with pip: 
 To check if you have pip installed:
@@ -35,8 +35,8 @@ $ python get-pip.py
 
 If you have pip all ready to go:
 ```
-$ pip install beautifulsoup4
-$ pip install gmusicapi
+$ pip install beautifulsoup4  
+$ pip install gmusicapi  
 $ pip install cryptography
 
 ```
@@ -63,7 +63,7 @@ export
 ```
 Usage: dittygetty export [OPTIONS] PLAYLIST_NAME
 
-  Exports the active playlist to google music
+  Exports a playlist to google music, default is active playlist, named PLAYLIST_NAME
 
 Options:
   --f TEXT  File: Export a file to Gmusic rather than the active playlist
@@ -88,14 +88,14 @@ import
 ```
 Usage: dittygetty import [OPTIONS] DATE
 
-      Imports a playlist from NPR or textfile Requires a date in the
-      formate MM-DD-YYYY
+      Imports a playlist from NPR or textfile Requires a date in the format
+      MM-DD-YYYY, 'today' or 'yesterday' keywords
 
 Options:
   --t TEXT   Starting time for parse
   --et TEXT  Ending time for parse
   --f TEXT   File: Option to save imported songs to a file rather than the
-             active playlist
+             active playlist. Can use today and yesterday keywords.
   --help     Show this message and exit.
 ```
 
@@ -118,6 +118,8 @@ Usage: dittygetty write [OPTIONS] FILE
   overwrite any previous data in that file
 
 Options:
+  --m     Merge: If file already exists, append active playlist with
+          duplicate removal
   --help  Show this message and exit.
 ```
 playlist
@@ -157,10 +159,12 @@ Playlist Commands:
         Displays playlist, default is active playlist
 
       Options:
-        --ff    Displays the playlist in the file
-                format(HH:MM||SongName||ArtistName). Can be output into a file for
-                import later.
-        --help  Show this message and exit.
+        --ff      Displays the playlist in the file
+                  format(HH:MM||SongName||ArtistName). Can be output into a file
+                  for import later.
+        --f TEXT  Displays the playlist from a file without loading it into the
+                  active playlist
+        --help    Show this message and exit.
 ```
       get_dir ---    Gets current app directory
 ```
@@ -178,7 +182,12 @@ Dittygetty can easily be scheduled to run with crontab on Unix-like computer ope
 
 Here's an example of a cronjob that runs at 2:00 AM every day and imports 4-14-2018 from JPR into the text file "test.txt"
 ```
-crontab 0 2 * * * dittygetty import 4-14-2018 "test.txt"
+crontab 0 2 * * * dittygetty import 4-14-2018 --f "test.txt"
+```
+
+Using today keyword, runs at 11:59 PM every day and imports that day to a file named that date EX: 2018-05-22.txt 
+```
+crontab 59 23 * * * dittygetty import today --f today
 ```
 
 ## Logging in with Google Music
