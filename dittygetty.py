@@ -2,6 +2,7 @@ import click
 import os
 import sys
 import dg_gui
+from datetime import datetime, timedelta
 from config import Config
 from playlist import *
 from songInfo import *
@@ -63,23 +64,26 @@ def playlist_add(config, song, artist):
 
 @playlist.command('display')
 @click.option('--ff', is_flag=True, default=False, help="Displays the playlist in the file format(HH:MM||SongName||ArtistName). Can be output into a file for import later.")
-#@click.option('--file', help = "Displays the playlist in a file.")
+@click.option('--f', help = "Displays the playlist from a file without loading it into the active playlist")
 @pass_config
-def playlist_display(config, ff):
+def playlist_display(config, ff, f):
     '''
     Displays playlist, default is active playlist
     '''
     temp_playlist = Playlist()
 	
     try:
-        temp_playlist.to_playlist((config['playlist_cli']))
-        #print playlist
+		if f:
+			temp_playlist = read_playlist(f)
+		else:
+			temp_playlist.to_playlist((config['playlist_cli']))
+			#print playlist
     except KeyError:
         pass
 
     for song in temp_playlist.get():
 		if ff:
-			print("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
+			print("%s||%s||%s" % (song.songTime, song.songName, song.songArtist))
 		else:
 			print("" + song.toString())
 
@@ -100,35 +104,54 @@ def playlist_clear(config):
 
 @entry_point.command('import')
 #@click.option('--jpr', '-j', help='Imports a playlist from jpr requires date input "MM-DD-YYYY"')
-#@click.option('--file', '--f', help='Imports scraped data directly to a file')
 @click.argument('date')
 @click.option('--t', help='Starting time for parse', default="00:00")
 @click.option('--et', help='Ending time for parse', default="23:59")
-@click.option('--f', help='File: Option to save imported songs to a file rather than the active playlist')
+@click.option('--f', help='File: Option to save imported songs to a file rather than the active playlist. Can use today and yesterday keywords.')
 @pass_config
 def playlist_import(config, date, t, et, f):
 	'''
 	Imports a playlist from NPR or textfile
-    Requires a date in the formate MM-DD-YYYY
+    Requires a date in the format MM-DD-YYYY
+	Or 'today' or 'yesterday' keywords
 	'''
 
 	temp_playlist = Playlist()
+	month, day, year = 0, 0, 0
 	try:
-		tokens = date.split('-')
-		print(tokens)
+		if date == "today":
+			now = datetime.now()
+			month = int(now.month)
+			day = int(now.day)
+			year = int(now.year)
+			
+			#limits the end time to now
+			#et = str(now.hour) + ':' + str(now.minute)
+			
+		elif date == "yesterday":
+			yesterday = datetime.now() - timedelta(days=1)
+			month = int(yesterday.month)
+			day = int(yesterday.day)
+			year = int(yesterday.year)
+			
+		else:
+			tokens = date.split('-')
+			print(tokens)
+			month = int(tokens[0])
+			day = int(tokens[1])
+			year = int(tokens[2])
 		print t
 		print et
-		month = int(tokens[0])
-		day = int(tokens[1])
-		year = int(tokens[2])
 		temp_playlist.set(getList(month, day, year, t, et))
 	except:
 		raise click.UsageError('Invalid arguments, requires DATE input "MM-DD-YYYY"')
 
 	if f and len(temp_playlist.playlist) != 0:
-		
+		if f == "today":
+			f = datetime.today().strftime('%Y-%m-%d') +".txt"
+		elif f == "yesterday":
+			f = (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d') +".txt"
 		try:
-		
 			with open(f, 'w') as f:
 				for song in temp_playlist.get():
 					f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
@@ -177,8 +200,9 @@ def playlist_read(config, file):
 		
 @entry_point.command('write')
 @click.argument('file')
+@click.option('--m', is_flag=True, default=False, help="Merge: If file already exists, append active playlist with duplicate removal")
 @pass_config
-def playlist_write(config, file):
+def playlist_write(config, file, m):
 	'''
     Writes the active playlist to the file with the designated name
 	Will overwrite any previous data in that file
@@ -187,6 +211,15 @@ def playlist_write(config, file):
 		
 	try:
 		temp_playlist.to_playlist((config['playlist_cli']))
+		
+		#This won't get rid of duplicates 
+		if m:
+			temp_playlist2 = read_playlist(file)
+			merged_playlist = Playlist()
+			for song in temp_playlist2.get():
+				if song not in temp_playlist.get():
+					temp_playlist.add(song)
+				
 		
 		with open(file, 'w') as f:
 			for song in temp_playlist.get():
