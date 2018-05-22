@@ -1,5 +1,4 @@
 from Tkinter import *
-from jpr import *
 from songInfo import *
 from gmusic import *
 from threading import *
@@ -389,7 +388,6 @@ class Application(Frame):
 		
 		
 	def scrape(self):
-		#
 		self.delete_child_windows()
 		self.scrape_window = Toplevel(root)
 		self.scrape_window.wm_title("Enter Date and Time")
@@ -550,7 +548,8 @@ class Application(Frame):
 			month_int, day_int, year_int = int(month), int(day), int(year)
 			#call getList function from jpr.py
 			try:
-				playlist.set(getList(month_int, day_int, year_int, startTime, endTime))
+				jpr = NPR("520a4969e1c85ef575dd2484")
+				playlist.set(jpr.scrape_run(month_int, day_int, year_int, startTime, endTime))
 				self.updatePlaylist()
 				self.scrape_window.destroy()
 			except urllib2.URLError:
@@ -800,6 +799,7 @@ class EntryAdvanced(Entry):
 				self.connected_button.config(state='disabled')
 	
 def main():
+	global root
 	root = Tk()
 	root.title("DittyGetty")
 	app = Application(master=root)
@@ -808,6 +808,6 @@ def main():
 	#Destroys after the mainloop is finished
 	root.destroy()
 
-if __name__ == "main":
+if __name__ == "__main__":
 	main()
 
