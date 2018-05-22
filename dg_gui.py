@@ -4,6 +4,8 @@ from gmusic import *
 from threading import *
 from playlist import *
 from config import Config
+from npr import NPR
+from daily_playlist import DailyPlaylist
 from cryptography.fernet import Fernet
 import tkFileDialog
 import tkMessageBox
