@@ -14,10 +14,7 @@ class DailyPlaylist(Scraper):
 
 		
 
-		
-	def scrape_run(self):
-		
-
+	def scrape_body(self):
 		self.set_page('http://dailyplaylists.com/%s/' % (self._playlist_name))
 		self.generate_page_scraper()
 		#find page for widget to load
@@ -26,7 +23,8 @@ class DailyPlaylist(Scraper):
 		self.set_page(widget_page)
 		self.generate_page_scraper()
 
-		#print(self._page_scraper())
+
+		time.sleep(1)
 
 		song_data_list = self.findElementClassTokens('div', 'track-row-info ', "||")
 
@@ -37,10 +35,19 @@ class DailyPlaylist(Scraper):
 			scraped_song_list.append(SongInfo(song_data[0].strip(), song_data[1].strip(), ""))
 
 	
-		return scraped_song_list;
+		return scraped_song_list;		
+
+	def scrape_run(self):
+		
+		new_playlist = self.scrape_body()
+
+		if not new_playlist:
+			new_playlist = self.scrape_body()
+
+		return new_playlist
 
 if __name__ == "__main__":
-	jpr = DailyPlaylist("bassrush")
+	jpr = DailyPlaylist("hip-hop-daily")
 	print("test")
 	for song in jpr.scrape_run():
 		print song.toString()
