@@ -32,6 +32,12 @@ def entry_point(config):
 def playlist(config):
     '''Commands for modifying the playlist'''
     pass
+
+@entry_point.group()
+@pass_config
+def imports(config):
+    '''Commands for importing a playlist'''
+    pass
     
 
 
@@ -103,7 +109,31 @@ def playlist_clear(config):
     except:
         click.echo('ERROR: Active playlist clear unsuccessful') 
 
-@entry_point.command('import')
+@entry_point.command('search')
+#@click.option('--jpr', '-j', help='Imports a playlist from jpr requires date input "MM-DD-YYYY"')
+@click.argument('search_str')
+#@click.option('--f', help='File: Option to save imported songs to a file rather than the active playlist. Can use today and yesterday keywords.')
+@pass_config
+def playlist_import(config, search_str):
+	'''
+	Searches a string on google music
+	'''
+	
+	if not cli_login():
+			raise click.ClickException('Invalid Google Music Account Login')
+
+	searched_list = search_songs(search_str)
+
+	if not searched_list:
+		click.echo('No songs found with those search terms.')
+
+	else:
+		for songs in searched_list:
+			print songs
+
+	
+
+@imports.command('jpr')
 #@click.option('--jpr', '-j', help='Imports a playlist from jpr requires date input "MM-DD-YYYY"')
 @click.argument('date')
 @click.option('--t', help='Starting time for parse', default="00:00")
@@ -112,7 +142,7 @@ def playlist_clear(config):
 @pass_config
 def playlist_import(config, date, t, et, f):
 	'''
-	Imports a playlist from NPR or textfile
+	Imports a playlist from JPR
     Requires a date in the format MM-DD-YYYY, 'today' or 'yesterday' keywords
 	'''
 
@@ -145,6 +175,47 @@ def playlist_import(config, date, t, et, f):
 		temp_playlist.set(jpr.scrape_run(month, day, year, t, et))
 	except:
 		raise click.UsageError('Invalid arguments, requires DATE input "MM-DD-YYYY"')
+
+	if f and len(temp_playlist.playlist) != 0:
+		if f == "today":
+			f = datetime.today().strftime('%Y-%m-%d') +".txt"
+		elif f == "yesterday":
+			f = (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d') +".txt"
+		try:
+			with open(f, 'w') as f:
+				for song in temp_playlist.get():
+					f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
+		except KeyError:
+			pass
+		except Exception as e:
+			print e
+		
+	elif len(temp_playlist.playlist) != 0:
+		playlist_dict = temp_playlist.to_dict()
+		
+		config['playlist_cli'] = playlist_dict
+		config.save()
+	else:
+		print "No playlist found."
+
+@imports.command('daily_playlist')
+#@click.option('--jpr', '-j', help='Imports a playlist from jpr requires date input "MM-DD-YYYY"')
+@click.argument('name')
+@click.option('--f', help='File: Option to save imported songs to a file rather than the active playlist. Can use today and yesterday keywords.')
+@pass_config
+def playlist_import(config, name, f):
+	'''
+	Imports a playlist from dailyplaylist.com name argument is the url name given to a playlist
+	i.e. dailyplaylist.com/chill-daily/ chill-daily is the playlist name
+	'''
+
+	temp_playlist = Playlist()
+
+	try:
+		dp = DailyPlaylist(name)
+		temp_playlist.set(dp.scrape_run())
+	except:
+		raise click.UsageError('Invalid arguments, name must have no spaces')
 
 	if f and len(temp_playlist.playlist) != 0:
 		if f == "today":
@@ -229,7 +300,7 @@ def playlist_write(config, file, m):
 	except Exception as e:
 		print e
 		
-@entry_point.command('export')
+@entry_point.command('exports')
 @click.argument('playlist_name')
 @click.option('--f',  help="File: Export a file to Gmusic rather than the active playlist")
 @click.option('--e', is_flag=True, default=False, help="Add Existing: Add songs to an existing playlist.")

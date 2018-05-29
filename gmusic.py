@@ -15,6 +15,18 @@ def findTrackElement(searchDict, element):
 
 	return finalList
 
+def search_songs(search_str):
+	search = api.search(search_str, max_results=10)
+	song_list = list()
+
+	i = 0
+
+	for songs in search['song_hits']:
+		i += 1
+		song_list.append("%d: Title: %s Artist: %s Album: %s" % (i, songs['track']['title'], songs['track']['artist'], songs['track']['album']))
+
+	return song_list
+
 #returns list of ids for given songs
 def find_store_ids(songList):
 	idList = list()
@@ -148,6 +160,7 @@ def loginGmusic(username, pword):
 #my_list = ['Ana Ng','The Moment Tame Impala','sandstorm darude','fly me to the moon frank sinatra','zebra beach house',  'robot rock daft punk']
 
 #my_songs = list()
+
 
 #my_songs.append(SongInfo('Ana Ng', 'They Might Be Giants'))
 #my_songs.append(SongInfo('Sandstorm', 'Darude'))

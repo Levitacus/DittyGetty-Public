@@ -32,7 +32,7 @@ class DailyPlaylist(Scraper):
 		scraped_song_list = list()
 
 		for song_data in song_data_list:
-			scraped_song_list.append(SongInfo(song_data[0].strip(), song_data[1].strip(), ""))
+			scraped_song_list.append(SongInfo(song_data[0].strip().encode('ascii', 'ignore'), song_data[1].strip().encode('ascii', 'ignore'), ""))
 
 	
 		return scraped_song_list;		
