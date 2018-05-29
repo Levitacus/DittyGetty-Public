@@ -21,8 +21,9 @@ import string
 playlist = Playlist()
 
 class Application(Frame):
-	
-	
+	'''
+        GUI application
+    '''
 	#deletes child windows of root
 	def delete_child_windows(self):
 		count = True
@@ -36,7 +37,10 @@ class Application(Frame):
 
 	#Various callback functions for the homepage buttons
 	def add_song_option(self):
-
+		'''
+			Callback function for add song button
+			Gets artist and song name
+		'''
 		self.delete_child_windows()
 		self.add_window = Toplevel(root)
 		self.add_window.wm_title("Enter Date and Time")
@@ -79,6 +83,10 @@ class Application(Frame):
 		
 	
 	def add_song(self):
+		'''
+			Callback function for add_song_option submit button
+			Adds the song artist pair to the playlist
+		'''
 		global playlist
 
 		# error check for size of artist and song names
@@ -96,9 +104,13 @@ class Application(Frame):
 			self.add_window.destroy()
 	
 	def helpbox(self):
+		'''
+			Callback function for the help button
+			Gives the user instructions to operate the gui
+		'''
 
-		for songs in playlist.get():
-			print songs.songName
+		#for songs in playlist.get():
+		#	print songs.songName
 		
 		self.help_window = Toplevel(root, width="500")
 		self.help_window.wm_title("Help")
@@ -114,6 +126,10 @@ class Application(Frame):
 		#help_label.grid(row=0, column=0, columnspan=2, rowspan=len(options))
 		
 	def remove_song(self):
+		'''
+			Callback function for the remove button
+			Removes the selected songs from the playlist
+		'''
 		global playlist
 		items = self.playlist_view.selection()
 		#count = 0
@@ -126,6 +142,10 @@ class Application(Frame):
 			
 		
 	def clear_songs(self):
+		'''
+			Callback function for the clear button
+			Clears the active playlist
+		'''
 		global playlist
 		#playlist = list()
 		playlist.clear()
@@ -133,6 +153,10 @@ class Application(Frame):
 		print "Clear!"
 		
 	def import_text(self):
+		'''
+			Callback function for the import_text_button
+			Imports from a text file
+		'''
 		global playlist
 		self.delete_child_windows()
 		filename = tkFileDialog.askopenfilename()
@@ -164,6 +188,10 @@ class Application(Frame):
 
 		
 	def export_text(self):
+		'''
+			Callback function for the export_text_button
+			Exports to a textfile
+		'''
 		self.delete_child_windows()
 		global playlist
 		
@@ -184,7 +212,10 @@ class Application(Frame):
 			f.close()
 	
 	def import_gmusic(self, event=None):
-
+		'''
+			Callback function for the gMusic_button
+			Has the user login and checks their credentials
+		'''
 		if self.submit_button2['state'] == 'disabled':
 			return
 
@@ -237,6 +268,10 @@ class Application(Frame):
 			self.gmusic_window3.submit_button2.grid(row=2, column=0)
 
 	def import_gmusic_run(self, playlists_dict):
+		'''
+			Callback function for the submit_button2
+			Imports selected playlist from gmusic
+		'''
 		global playlist
 			
 		select_tuple = self.playlists_listbox.curselection()
@@ -262,7 +297,9 @@ class Application(Frame):
 	
 	#enable login button function
 	def button_enable(self, *args):
-
+		'''
+			Enables the login button if there is a user and pass in the fields
+		'''
 		username = self.default_name.get()
 		password = self.default_pass.get()
 
@@ -276,7 +313,9 @@ class Application(Frame):
 			#command_arg
 
 	def login_gmusic(self, command_arg):
-
+		'''
+			Brings up a login window
+		'''
 		#login to gmusic
 		self.delete_child_windows()
 		self.gmusic_window = Toplevel(root)
@@ -330,7 +369,10 @@ class Application(Frame):
 		self.submit_button2.grid(row=4, column=1, pady=15, sticky="s")
 		
 	def export_gmusic(self, event=None):
-		
+		'''
+			Callback function for export gmusic button
+			Logs in and brings up a list of paylists
+		'''
 		if self.submit_button2['state'] == 'disabled':
 			return
 
@@ -390,6 +432,10 @@ class Application(Frame):
 		
 		
 	def scrape(self):
+		'''
+			Callback function for webscrape_button
+			Asks for date and time to scrape JPR
+		'''
 		self.delete_child_windows()
 		self.scrape_window = Toplevel(root)
 		self.scrape_window.wm_title("Enter Date and Time")
@@ -448,26 +494,52 @@ class Application(Frame):
 		self.scrape_window.submit_button.grid(row=5, column=1)
 		self.scrape_error_label.grid(row=6, column=0, columnspan=3)
 		
-	#callback function for the submit_button for exporting to gmusic
 	def export_gmusic_run(self, playlists_dict):
+		'''
+			Callback function for the submit_button 
+			Runs the export to gmusic
+		'''
 		global playlist
-			
+		
+		self.failed_song_list = []
+		
+		ids_list = []
+		existing = False
+		
+		length = len(playlist.get())
+		self.loading_window()
+		
 		select_tuple = self.playlists_listbox.curselection()
 		#if a playlist is selected
 		if(select_tuple):
 			playlist_select_index = int(select_tuple[0])
 			self.playlistName = playlists_dict[playlist_select_index]['name']
-			self.failed_song_list = uploadSongsGmusic(playlists_dict[playlist_select_index]['id'], playlist.get(), existing=True, merge=self.merge_bool.get())
+			self.playlistID = playlists_dict[playlist_select_index]['id']
+			#self.failed_song_list = uploadSongsGmusic(playlists_dict[playlist_select_index]['id'], playlist.get(), existing=True, merge=self.merge_bool.get())
+			existing = True
+			
 		else:
 			#no selection
 			playlist_select_index = 0
 			self.playlistName = self.playlist_name_entry.get()
-			self.failed_song_list = uploadSongsGmusic(self.playlistName, playlist.get())
+			self.playlistID = self.playlistName
+			#self.failed_song_list = uploadSongsGmusic(self.playlistName, playlist.get())
+			
+		for song in playlist.get():
+				song_id = find_store_id(song)
+
+				if(song_id):
+					ids_list.append(song_id)
+				else:
+					self.failed_song_list.append(song)
+				self.step(length)
+			
+		test = upload_ids_gmusic(self.playlistID, ids_list, existing, merge=self.merge_bool.get())
 
 		print(playlist_select_index)
 
 		#if failed songs is a list and has entries
-		if self.failed_song_list and isinstance(self.failed_song_list, list):
+		if len(self.failed_song_list) > 0 and isinstance(self.failed_song_list, list):
 			str_failed_songs = ""
 			count = 1
 			for songs in self.failed_song_list:
@@ -498,6 +570,10 @@ class Application(Frame):
 		self.gmusic_window2.destroy()
 	
 	def export_missed_songs(self):
+		'''
+			Callback function for export_missed_songs_button
+			Export missed songs to a textfile
+		'''
 		if len(self.failed_song_list) is 0:
 			tkMessageBox.showinfo('Export Text', "Can't export an empty playlist.")
 		
@@ -513,8 +589,11 @@ class Application(Frame):
 			f.close()
 		self.missed_songs_window.destroy()
 		
-	#callback function for the scrape() submit_button
 	def get_playlist(self):
+		'''
+			Callback function for the scrape() submit_button
+			Actually scrapes the website
+		'''
 		global playlist
 		
 		month = self.month_entry.get()
@@ -557,7 +636,24 @@ class Application(Frame):
 			except urllib2.URLError:
 				self.scrape_error.set("No data available for selected time")
 			
-				
+	def loading_window(self, title="Loading Bar"):
+		self.loading_window = Toplevel(root)
+		self.loading_window.title(title)
+		self.loading_bar = ttk.Progressbar(self.loading_window, orient="horizontal", maximum=100, mode="determinate")
+		self.loading_count = 1
+		
+		self.loading_bar.grid(row=0, column=0, rowspan=100)
+		
+		
+	
+	def step(self, num_items):
+		step_length = 100 // num_items
+		self.loading_bar.step(step_length)
+		if self.loading_count <= num_items:
+			self.loading_window.destroy
+		else:
+			self.loading_count += 1
+	
 	
 	#Updates the playlist in the viewer to match the playlist variable
 	def updatePlaylist(self):
@@ -799,6 +895,7 @@ class EntryAdvanced(Entry):
 			self.put_placeholder()
 			if self.connected_button:
 				self.connected_button.config(state='disabled')
+		
 	
 def main():
 	global root
