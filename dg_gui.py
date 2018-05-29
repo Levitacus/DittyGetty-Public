@@ -429,10 +429,79 @@ class Application(Frame):
 			self.playlist_name_entry.grid(row=3, column=0)	
 			self.gmusic_window2.submit_button2.grid(row=4, column=0)
 		
+	def scrape_options(self):
+		self.delete_child_windows()
+		scrape_option_window = Toplevel(root, height=500, width=500)
+		scrape_option_window.wm_title("Scrape Option")
+		site_choice = StringVar()
 		
-	def scrape(self):
+		combobox_values = ['Jefferson Public Radio', 'Daily Playlist']
+		
+		label = Label(scrape_option_window, text="Choose a website to scrape.")
+		site_combobox = ttk.Combobox(scrape_option_window, textvariable=site_choice, values=combobox_values)
+		submit = Button(scrape_option_window, text="Choose", command= lambda: self.determine_site(site_combobox.get()))
+		
+		scrape_option_window.bind("<Return>", lambda e: self.determine_site(site_combobox.get()))
+		
+		label.grid(row=1, column=3, rowspan=2, columnspan=5, padx=50)
+		site_combobox.grid(row=3, column=3, rowspan=2, columnspan=5, padx=50, pady=(10,20))
+		submit.grid(row=5, column=3, columnspan=5, padx=50, pady=(0, 50))
+
+	def determine_site(self, site):
+		if site is None:
+			pass
+		elif site == 'Jefferson Public Radio' or site == 'JPR' or site == 'jpr':
+			self.jpr_scrape()
+		elif site == 'Daily Playlist':
+			self.dp_scrape()
+		else:
+			#maybe a URL the user enters
+			pass
+			
+	def dp_scrape(self):
 		'''
-			Callback function for webscrape_button
+			Asks for name of daily playlist
+			Stores the previous daily playlist playlists in the json file
+		'''
+		self.delete_child_windows()
+		self.dp_scrape_window = Toplevel(root, height=500, width=500)
+		self.dp_scrape_window.wm_title("Scrape Option")
+		site_choice = StringVar()
+		combobox_values = ['hip-hop-daily', 'house-daily', 'rock-daily']
+		try:
+			combobox_values = self.json_config['daily_playlist']
+		except KeyError:
+			self.json_config['daily_playlist'] = combobox_values
+		
+		label = Label(self.dp_scrape_window, text="Choose a daily playlist to scrape.")
+		dp_combobox = ttk.Combobox(self.dp_scrape_window, textvariable=site_choice, values=combobox_values)
+		submit = Button(self.dp_scrape_window, text="Choose", command= lambda: self.dp_playlist(dp_combobox.get()))
+		
+		self.dp_scrape_window.bind("<Return>", lambda e: self.dp_playlist(dp_combobox.get()))
+		
+		label.grid(row=1, column=3, rowspan=2, columnspan=5, padx=50)
+		dp_combobox.grid(row=3, column=3, rowspan=2, columnspan=5, padx=50, pady=(10,20))
+		submit.grid(row=5, column=3, columnspan=5, padx=50, pady=(0, 50))
+		pass
+		
+	def dp_playlist(self, daily_playlist):
+		'''
+			Scrapes from dailyplaylists.com
+			with the given list name
+		'''
+		global playlist
+		dp = DailyPlaylist(daily_playlist)
+		try:
+			playlist.set(dp.scrape_run())
+			self.updatePlaylist()
+			if daily_playlist not in self.json_config['daily_playlist']:
+				self.json_config['daily_playlist'].append(daily_playlist)
+			self.dp_scrape_window.destroy()
+		except:
+			tkMessageBox.showinfo('DailyPlaylist Import', 'That playlist doesn\'t exist')
+	
+	def jpr_scrape(self):
+		'''
 			Asks for date and time to scrape JPR
 		'''
 		self.delete_child_windows()
@@ -464,9 +533,9 @@ class Application(Frame):
 		hyphen_label = Label(self.scrape_window, text="---")
 		
 		#important that the callback function here just references the command, not passing it
-		self.scrape_window.submit_button = Button(self.scrape_window, text="Submit", command=self.get_playlist)
+		self.scrape_window.submit_button = Button(self.scrape_window, text="Submit", command=self.jpr_playlist)
 		#bind enter key to submit button
-		self.scrape_window.bind("<Return>", lambda e: self.get_playlist())		
+		self.scrape_window.bind("<Return>", lambda e: self.jpr_playlist())
 
 		#error label
 		self.scrape_error_label = Label(self.scrape_window, textvariable=self.scrape_error)
@@ -492,7 +561,55 @@ class Application(Frame):
 		
 		self.scrape_window.submit_button.grid(row=5, column=1)
 		self.scrape_error_label.grid(row=6, column=0, columnspan=3)
+	
+	def jpr_playlist(self):
+		'''
+			Callback function for the jpr_scrape() submit_button
+			Actually scrapes the website
+		'''
+		global playlist
 		
+		month = self.month_entry.get()
+		day = self.day_entry.get()
+		year = self.year_entry.get()
+		startTime = self.startTime_entry.get()
+		endTime = self.endTime_entry.get()
+		
+		# if month is not '':
+			# if int(month) is 2:
+				# day_regex = '[1-9]|0[1-9]|[1-2][1-9]|[2][8]'
+			# else:
+				# day_regex = '[1-9]|0[1-9]|[1-2][1-9]|[3][0-1]'
+		
+		#The regex checks
+		month_check = re.match('0*([1-9]|0[1-9]|[1][0-2])$', month)
+		day_check = re.match('0*([1-9]|0[1-9]|[1-2][0-9]|[3][0-1])$', day)
+		year_check = re.match('(20[2-9][0-9]|201[4-9])$', year)
+		start_check = re.match('([1-9]|[0-1][0-9]|[2][0-4]):[0-5][0-9]|([1-9]|[0-1][0-2]):[0-5][0-9](AM|PM|am|pm)$', startTime)
+		end_check = re.match('([1-9]|[0-1][0-9]|[2][0-4]):[0-5][0-9]|([1-9]|[0-1][0-2]):[0-5][0-9](AM|PM|am|pm)$', endTime)
+		
+		if month_check is None:
+			self.scrape_error.set("Please enter a month between 1-12 in mm format.")
+		elif day_check is None:
+			self.scrape_error.set("Please enter a day between 1-31 in dd format.")
+		elif year_check is None:
+			self.scrape_error.set("Please enter a year after 2013 in yyyy format.")
+		elif start_check is None:
+			self.scrape_error.set("Please enter a valid start time in hh:mm format or hh:mm AM/PM format.")
+		elif end_check is None:
+			self.scrape_error.set("Please enter a valid end time in hh:mm format or hh:mm AM/PM format.")
+		else:
+			month_int, day_int, year_int = int(month), int(day), int(year)
+			#call getList function from jpr.py
+			try:
+				jpr = NPR("520a4969e1c85ef575dd2484")
+				playlist.set(jpr.scrape_run(month_int, day_int, year_int, startTime, endTime))
+				self.updatePlaylist()
+				self.scrape_window.destroy()
+			except urllib2.URLError:
+				self.scrape_error.set("No data available for selected time")
+				
+	
 	def export_gmusic_run(self, playlists_dict):
 		'''
 			Callback function for the submit_button 
@@ -564,7 +681,7 @@ class Application(Frame):
 			self.missed_songs_window.wm_title("Missed Songs")
 			
 			missed_string = ('Creation of playlist: %s successful!\n\n Failed Songs:\n%s' % (self.playlistName, str_failed_songs))
-			missed_songs_label = Label(self.missed_songs_window, text=missed_string)
+			missed_songs_label = Label(self.missed_songs_window, text=missed_string, bg="white", anchor='w')
 			ok_button = Button(self.missed_songs_window, text="Okay", command=self.missed_songs_window.destroy)
 			self.export_missed_songs_button = Button(self.missed_songs_window, text="Export to Textfile", command=self.export_missed_songs)
 			
@@ -602,60 +719,13 @@ class Application(Frame):
 			f.close()
 		self.missed_songs_window.destroy()
 		
-	def get_playlist(self):
-		'''
-			Callback function for the scrape() submit_button
-			Actually scrapes the website
-		'''
-		global playlist
-		
-		month = self.month_entry.get()
-		day = self.day_entry.get()
-		year = self.year_entry.get()
-		startTime = self.startTime_entry.get()
-		endTime = self.endTime_entry.get()
-		
-		# if month is not '':
-			# if int(month) is 2:
-				# day_regex = '[1-9]|0[1-9]|[1-2][1-9]|[2][8]'
-			# else:
-				# day_regex = '[1-9]|0[1-9]|[1-2][1-9]|[3][0-1]'
-		
-		#The regex checks
-		month_check = re.match('0*([1-9]|0[1-9]|[1][0-2])$', month)
-		day_check = re.match('0*([1-9]|0[1-9]|[1-2][0-9]|[3][0-1])$', day)
-		year_check = re.match('(20[2-9][0-9]|201[4-9])$', year)
-		start_check = re.match('([1-9]|[0-1][0-9]|[2][0-4]):[0-5][0-9]|([1-9]|[0-1][0-2]):[0-5][0-9](AM|PM|am|pm)$', startTime)
-		end_check = re.match('([1-9]|[0-1][0-9]|[2][0-4]):[0-5][0-9]|([1-9]|[0-1][0-2]):[0-5][0-9](AM|PM|am|pm)$', endTime)
-		
-		if month_check is None:
-			self.scrape_error.set("Please enter a month between 1-12 in mm format.")
-		elif day_check is None:
-			self.scrape_error.set("Please enter a day between 1-31 in dd format.")
-		elif year_check is None:
-			self.scrape_error.set("Please enter a year after 2013 in yyyy format.")
-		elif start_check is None:
-			self.scrape_error.set("Please enter a valid start time in hh:mm format or hh:mm AM/PM format.")
-		elif end_check is None:
-			self.scrape_error.set("Please enter a valid end time in hh:mm format or hh:mm AM/PM format.")
-		else:
-			month_int, day_int, year_int = int(month), int(day), int(year)
-			#call getList function from jpr.py
-			try:
-				jpr = NPR("520a4969e1c85ef575dd2484")
-				playlist.set(jpr.scrape_run(month_int, day_int, year_int, startTime, endTime))
-				self.updatePlaylist()
-				self.scrape_window.destroy()
-			except urllib2.URLError:
-				self.scrape_error.set("No data available for selected time")
-			
 	def loading_window(self, title="Loading Bar", progress_increments=100):
-		self.loading_window = Toplevel(root)
+		self.loading_window = Toplevel(root, width=200, height=100)
 		self.loading_window.title(title)
 		self.loading_bar = ttk.Progressbar(self.loading_window, orient="horizontal", maximum=100, mode="determinate")
 		self.loading_bar["maximum"] = progress_increments
 		
-		self.loading_bar.grid(row=0, column=0, rowspan=100)
+		self.loading_bar.grid(row=0, column=0, rowspan=100, columnspan=3, padx=10, pady=10)
 
 		
 		
@@ -733,7 +803,7 @@ class Application(Frame):
 
 		#The webscrape button
 		self.webscrape_button = Button(self, text="Import from Website")
-		self.webscrape_button["command"] = self.scrape
+		self.webscrape_button["command"] = self.scrape_options
 
 		self.webscrape_button.grid(row=8, column=6, padx=5, pady=5)
 
@@ -858,8 +928,8 @@ class Application(Frame):
 		#listbox callback for selecting multiple columns
 		self.create_widgets()
 
-		self.playlist_label_name = Label(self, text="Playlist Viewer")
-		self.playlist_label_name.grid(row=1, column=2)
+		self.playlist_label_name = Label(self, text="DittyGetty Playlist Viewer", font='helvetica 16')
+		self.playlist_label_name.grid(row=1, column=0, columnspan=6)
 		
 		#playlist view movement
 		self.playlist_view.bind('<1>', self.b_press)
