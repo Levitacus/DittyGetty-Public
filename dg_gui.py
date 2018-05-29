@@ -109,8 +109,7 @@ class Application(Frame):
 			Gives the user instructions to operate the gui
 		'''
 
-		#for songs in playlist.get():
-		#	print songs.songName
+
 		
 		self.help_window = Toplevel(root, width="500")
 		self.help_window.wm_title("Help")
@@ -507,7 +506,16 @@ class Application(Frame):
 		existing = False
 		
 		length = len(playlist.get())
-		self.loading_window()
+		#self.loading_window = Toplevel(root)
+		#self.loading_window.title("Export progress")
+		#self.loading_bar = ttk.Progressbar(self.loading_window, orient="horizontal", length=200, mode="determinate")
+		#self.loading_bar["maximum"] = 100
+		
+		#self.loading_bar.grid(row=0, column=0, rowspan=100)
+		#self.loading_bar.update_idletasks()
+
+		#value = 0
+
 		
 		select_tuple = self.playlists_listbox.curselection()
 		#if a playlist is selected
@@ -524,7 +532,11 @@ class Application(Frame):
 			self.playlistName = self.playlist_name_entry.get()
 			self.playlistID = self.playlistName
 			#self.failed_song_list = uploadSongsGmusic(self.playlistName, playlist.get())
+
+		self.loading_window("Loading", len(playlist.get()))
 			
+		i = 0
+
 		for song in playlist.get():
 				song_id = find_store_id(song)
 
@@ -532,7 +544,8 @@ class Application(Frame):
 					ids_list.append(song_id)
 				else:
 					self.failed_song_list.append(song)
-				self.step(length)
+				i += 1
+				self.step(i)
 			
 		test = upload_ids_gmusic(self.playlistID, ids_list, existing, merge=self.merge_bool.get())
 
@@ -636,23 +649,24 @@ class Application(Frame):
 			except urllib2.URLError:
 				self.scrape_error.set("No data available for selected time")
 			
-	def loading_window(self, title="Loading Bar"):
+	def loading_window(self, title="Loading Bar", progress_increments=100):
 		self.loading_window = Toplevel(root)
 		self.loading_window.title(title)
 		self.loading_bar = ttk.Progressbar(self.loading_window, orient="horizontal", maximum=100, mode="determinate")
-		self.loading_count = 1
+		self.loading_bar["maximum"] = progress_increments
 		
 		self.loading_bar.grid(row=0, column=0, rowspan=100)
+
 		
 		
 	
 	def step(self, num_items):
-		step_length = 100 // num_items
-		self.loading_bar.step(step_length)
-		if self.loading_count <= num_items:
-			self.loading_window.destroy
-		else:
-			self.loading_count += 1
+		self.loading_bar["value"] = num_items
+		self.loading_bar.update_idletasks()
+		if self.loading_bar["maximum"] <= num_items:
+			self.loading_window.destroy()
+
+
 	
 	
 	#Updates the playlist in the viewer to match the playlist variable
