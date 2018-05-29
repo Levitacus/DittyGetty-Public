@@ -21,8 +21,9 @@ import string
 playlist = Playlist()
 
 class Application(Frame):
-	
-	
+	'''
+        GUI application
+    '''
 	#deletes child windows of root
 	def delete_child_windows(self):
 		count = True
@@ -36,7 +37,10 @@ class Application(Frame):
 
 	#Various callback functions for the homepage buttons
 	def add_song_option(self):
-
+		'''
+			Callback function for add song button
+			Gets artist and song name
+		'''
 		self.delete_child_windows()
 		self.add_window = Toplevel(root)
 		self.add_window.wm_title("Enter Date and Time")
@@ -79,6 +83,10 @@ class Application(Frame):
 		
 	
 	def add_song(self):
+		'''
+			Callback function for add_song_option submit button
+			Adds the song artist pair to the playlist
+		'''
 		global playlist
 
 		# error check for size of artist and song names
@@ -96,9 +104,12 @@ class Application(Frame):
 			self.add_window.destroy()
 	
 	def helpbox(self):
+		'''
+			Callback function for the help button
+			Gives the user instructions to operate the gui
+		'''
 
-		for songs in playlist.get():
-			print songs.songName
+
 		
 		self.help_window = Toplevel(root, width="500")
 		self.help_window.wm_title("Help")
@@ -114,6 +125,10 @@ class Application(Frame):
 		#help_label.grid(row=0, column=0, columnspan=2, rowspan=len(options))
 		
 	def remove_song(self):
+		'''
+			Callback function for the remove button
+			Removes the selected songs from the playlist
+		'''
 		global playlist
 		items = self.playlist_view.selection()
 		#count = 0
@@ -126,6 +141,10 @@ class Application(Frame):
 			
 		
 	def clear_songs(self):
+		'''
+			Callback function for the clear button
+			Clears the active playlist
+		'''
 		global playlist
 		#playlist = list()
 		playlist.clear()
@@ -133,6 +152,10 @@ class Application(Frame):
 		print "Clear!"
 		
 	def import_text(self):
+		'''
+			Callback function for the import_text_button
+			Imports from a text file
+		'''
 		global playlist
 		self.delete_child_windows()
 		filename = tkFileDialog.askopenfilename()
@@ -164,6 +187,10 @@ class Application(Frame):
 
 		
 	def export_text(self):
+		'''
+			Callback function for the export_text_button
+			Exports to a textfile
+		'''
 		self.delete_child_windows()
 		global playlist
 		
@@ -184,7 +211,10 @@ class Application(Frame):
 			f.close()
 	
 	def import_gmusic(self, event=None):
-
+		'''
+			Callback function for the gMusic_button
+			Has the user login and checks their credentials
+		'''
 		if self.submit_button2['state'] == 'disabled':
 			return
 
@@ -237,6 +267,10 @@ class Application(Frame):
 			self.gmusic_window3.submit_button2.grid(row=2, column=0)
 
 	def import_gmusic_run(self, playlists_dict):
+		'''
+			Callback function for the submit_button2
+			Imports selected playlist from gmusic
+		'''
 		global playlist
 			
 		select_tuple = self.playlists_listbox.curselection()
@@ -262,7 +296,9 @@ class Application(Frame):
 	
 	#enable login button function
 	def button_enable(self, *args):
-
+		'''
+			Enables the login button if there is a user and pass in the fields
+		'''
 		username = self.default_name.get()
 		password = self.default_pass.get()
 
@@ -276,7 +312,9 @@ class Application(Frame):
 			#command_arg
 
 	def login_gmusic(self, command_arg):
-
+		'''
+			Brings up a login window
+		'''
 		#login to gmusic
 		self.delete_child_windows()
 		self.gmusic_window = Toplevel(root)
@@ -330,7 +368,10 @@ class Application(Frame):
 		self.submit_button2.grid(row=4, column=1, pady=15, sticky="s")
 		
 	def export_gmusic(self, event=None):
-		
+		'''
+			Callback function for export gmusic button
+			Logs in and brings up a list of paylists
+		'''
 		if self.submit_button2['state'] == 'disabled':
 			return
 
@@ -388,8 +429,81 @@ class Application(Frame):
 			self.playlist_name_entry.grid(row=3, column=0)	
 			self.gmusic_window2.submit_button2.grid(row=4, column=0)
 		
+	def scrape_options(self):
+		self.delete_child_windows()
+		scrape_option_window = Toplevel(root, height=500, width=500)
+		scrape_option_window.wm_title("Scrape Option")
+		site_choice = StringVar()
 		
-	def scrape(self):
+		combobox_values = ['Jefferson Public Radio', 'Daily Playlist']
+		
+		label = Label(scrape_option_window, text="Choose a website to scrape.")
+		site_combobox = ttk.Combobox(scrape_option_window, textvariable=site_choice, values=combobox_values)
+		submit = Button(scrape_option_window, text="Choose", command= lambda: self.determine_site(site_combobox.get()))
+		
+		scrape_option_window.bind("<Return>", lambda e: self.determine_site(site_combobox.get()))
+		
+		label.grid(row=1, column=3, rowspan=2, columnspan=5, padx=50)
+		site_combobox.grid(row=3, column=3, rowspan=2, columnspan=5, padx=50, pady=(10,20))
+		submit.grid(row=5, column=3, columnspan=5, padx=50, pady=(0, 50))
+
+	def determine_site(self, site):
+		if site is None:
+			pass
+		elif site == 'Jefferson Public Radio' or site == 'JPR' or site == 'jpr':
+			self.jpr_scrape()
+		elif site == 'Daily Playlist':
+			self.dp_scrape()
+		else:
+			#maybe a URL the user enters
+			pass
+			
+	def dp_scrape(self):
+		'''
+			Asks for name of daily playlist
+			Stores the previous daily playlist playlists in the json file
+		'''
+		self.delete_child_windows()
+		self.dp_scrape_window = Toplevel(root, height=500, width=500)
+		self.dp_scrape_window.wm_title("Scrape Option")
+		site_choice = StringVar()
+		combobox_values = ['hip-hop-daily', 'house-daily', 'rock-daily']
+		try:
+			combobox_values = self.json_config['daily_playlist']
+		except KeyError:
+			self.json_config['daily_playlist'] = combobox_values
+		
+		label = Label(self.dp_scrape_window, text="Choose a daily playlist to scrape.")
+		dp_combobox = ttk.Combobox(self.dp_scrape_window, textvariable=site_choice, values=combobox_values)
+		submit = Button(self.dp_scrape_window, text="Choose", command= lambda: self.dp_playlist(dp_combobox.get()))
+		
+		self.dp_scrape_window.bind("<Return>", lambda e: self.dp_playlist(dp_combobox.get()))
+		
+		label.grid(row=1, column=3, rowspan=2, columnspan=5, padx=50)
+		dp_combobox.grid(row=3, column=3, rowspan=2, columnspan=5, padx=50, pady=(10,20))
+		submit.grid(row=5, column=3, columnspan=5, padx=50, pady=(0, 50))
+		pass
+		
+	def dp_playlist(self, daily_playlist):
+		'''
+			Scrapes from dailyplaylists.com
+			with the given list name
+		'''
+		global playlist
+		dp = DailyPlaylist(daily_playlist)
+		try:
+			playlist.set(dp.scrape_run())
+			self.updatePlaylist()
+			if daily_playlist not in self.json_config['daily_playlist']:
+				self.json_config['daily_playlist'].append(daily_playlist)
+			self.dp_scrape_window.destroy()
+		except:
+			tkMessageBox.showinfo('DailyPlaylist Import', 'That playlist doesn\'t exist')
+	
+	def jpr_scrape(self):
+		'''
+			Asks for date and time to scrape JPR
+		'''
 		self.delete_child_windows()
 		self.scrape_window = Toplevel(root)
 		self.scrape_window.wm_title("Enter Date and Time")
@@ -419,9 +533,9 @@ class Application(Frame):
 		hyphen_label = Label(self.scrape_window, text="---")
 		
 		#important that the callback function here just references the command, not passing it
-		self.scrape_window.submit_button = Button(self.scrape_window, text="Submit", command=self.get_playlist)
+		self.scrape_window.submit_button = Button(self.scrape_window, text="Submit", command=self.jpr_playlist)
 		#bind enter key to submit button
-		self.scrape_window.bind("<Return>", lambda e: self.get_playlist())		
+		self.scrape_window.bind("<Return>", lambda e: self.jpr_playlist())
 
 		#error label
 		self.scrape_error_label = Label(self.scrape_window, textvariable=self.scrape_error)
@@ -447,74 +561,12 @@ class Application(Frame):
 		
 		self.scrape_window.submit_button.grid(row=5, column=1)
 		self.scrape_error_label.grid(row=6, column=0, columnspan=3)
-		
-	#callback function for the submit_button for exporting to gmusic
-	def export_gmusic_run(self, playlists_dict):
-		global playlist
-			
-		select_tuple = self.playlists_listbox.curselection()
-		#if a playlist is selected
-		if(select_tuple):
-			playlist_select_index = int(select_tuple[0])
-			self.playlistName = playlists_dict[playlist_select_index]['name']
-			self.failed_song_list = uploadSongsGmusic(playlists_dict[playlist_select_index]['id'], playlist.get(), existing=True, merge=self.merge_bool.get())
-		else:
-			#no selection
-			playlist_select_index = 0
-			self.playlistName = self.playlist_name_entry.get()
-			self.failed_song_list = uploadSongsGmusic(self.playlistName, playlist.get())
-
-		print(playlist_select_index)
-
-		#if failed songs is a list and has entries
-		if self.failed_song_list and isinstance(self.failed_song_list, list):
-			str_failed_songs = ""
-			count = 1
-			for songs in self.failed_song_list:
-				str_failed_songs += (str(count) + ": " + songs.toString() + "\n\n")
-				count += 1
-			
-			#create a new window that has the option to save to a textfile
-			self.missed_songs_window = Toplevel(root)
-			self.missed_songs_window.wm_title("Missed Songs")
-			
-			missed_string = ('Creation of playlist: %s successful!\n\n Failed Songs:\n%s' % (self.playlistName, str_failed_songs))
-			missed_songs_label = Label(self.missed_songs_window, text=missed_string)
-			ok_button = Button(self.missed_songs_window, text="Okay", command=self.missed_songs_window.destroy)
-			self.export_missed_songs_button = Button(self.missed_songs_window, text="Export to Textfile", command=self.export_missed_songs)
-			
-			#Place the label and the buttons.
-			missed_songs_label.grid(row=0, column=1, columnspan=3)
-			
-			ok_button.grid(row=1, column=1)
-			self.export_missed_songs_button.grid(row=1, column=2)
-			#tkMessageBox.showinfo('Playlist Creation', 'Creation of playlist: %s successful!\n\n Failed Songs:\n%s' % (self.playlistName, str_failed_songs))
-		#if failed songs exists but has no entries
-		elif self.failed_song_list:
-			tkMessageBox.showinfo('Playlist Creation', 'Creation of playlist: %s Successful!' % (self.playlistName))
-		else:
-			tkMessageBox.showinfo('Playlist Creation Error', 'Creation of playlist: %s unsuccessful!' % (self.playlistName))
-		
-		self.gmusic_window2.destroy()
 	
-	def export_missed_songs(self):
-		if len(self.failed_song_list) is 0:
-			tkMessageBox.showinfo('Export Text', "Can't export an empty playlist.")
-		
-		#If not empty, write to file
-		else:
-			f = tkFileDialog.asksaveasfile(mode='w', defaultextension=".txt")
-			if f is None:
-				return
-
-			for song in self.failed_song_list:
-				f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
-
-			f.close()
-		self.missed_songs_window.destroy()
-		
-	#callback function for the scrape() submit_button
-	def get_playlist(self):
+	def jpr_playlist(self):
+		'''
+			Callback function for the jpr_scrape() submit_button
+			Actually scrapes the website
+		'''
 		global playlist
 		
 		month = self.month_entry.get()
@@ -556,8 +608,136 @@ class Application(Frame):
 				self.scrape_window.destroy()
 			except urllib2.URLError:
 				self.scrape_error.set("No data available for selected time")
-			
 				
+	
+	def export_gmusic_run(self, playlists_dict):
+		'''
+			Callback function for the submit_button 
+			Runs the export to gmusic
+		'''
+		global playlist
+		
+		self.failed_song_list = []
+		
+		ids_list = []
+		existing = False
+		
+		length = len(playlist.get())
+		#self.loading_window = Toplevel(root)
+		#self.loading_window.title("Export progress")
+		#self.loading_bar = ttk.Progressbar(self.loading_window, orient="horizontal", length=200, mode="determinate")
+		#self.loading_bar["maximum"] = 100
+		
+		#self.loading_bar.grid(row=0, column=0, rowspan=100)
+		#self.loading_bar.update_idletasks()
+
+		#value = 0
+
+		
+		select_tuple = self.playlists_listbox.curselection()
+		#if a playlist is selected
+		if(select_tuple):
+			playlist_select_index = int(select_tuple[0])
+			self.playlistName = playlists_dict[playlist_select_index]['name']
+			self.playlistID = playlists_dict[playlist_select_index]['id']
+			#self.failed_song_list = uploadSongsGmusic(playlists_dict[playlist_select_index]['id'], playlist.get(), existing=True, merge=self.merge_bool.get())
+			existing = True
+			
+		else:
+			#no selection
+			playlist_select_index = 0
+			self.playlistName = self.playlist_name_entry.get()
+			self.playlistID = self.playlistName
+			#self.failed_song_list = uploadSongsGmusic(self.playlistName, playlist.get())
+
+		self.loading_window("Loading", len(playlist.get()))
+			
+		i = 0
+
+		for song in playlist.get():
+				song_id = find_store_id(song)
+
+				if(song_id):
+					ids_list.append(song_id)
+				else:
+					self.failed_song_list.append(song)
+				i += 1
+				self.step(i)
+			
+		test = upload_ids_gmusic(self.playlistID, ids_list, existing, merge=self.merge_bool.get())
+
+		print(playlist_select_index)
+
+		#if failed songs is a list and has entries
+		if len(self.failed_song_list) > 0 and isinstance(self.failed_song_list, list):
+			str_failed_songs = ""
+			count = 1
+			for songs in self.failed_song_list:
+				str_failed_songs += (str(count) + ": " + songs.toString() + "\n\n")
+				count += 1
+			
+			#create a new window that has the option to save to a textfile
+			self.missed_songs_window = Toplevel(root)
+			self.missed_songs_window.wm_title("Missed Songs")
+			
+			missed_string = ('Creation of playlist: %s successful!\n\n Failed Songs:\n%s' % (self.playlistName, str_failed_songs))
+			missed_songs_label = Label(self.missed_songs_window, text=missed_string, bg="white", anchor='w')
+			ok_button = Button(self.missed_songs_window, text="Okay", command=self.missed_songs_window.destroy)
+			self.export_missed_songs_button = Button(self.missed_songs_window, text="Export to Textfile", command=self.export_missed_songs)
+			
+			#Place the label and the buttons.
+			missed_songs_label.grid(row=0, column=1, columnspan=3)
+			
+			ok_button.grid(row=1, column=1)
+			self.export_missed_songs_button.grid(row=1, column=2)
+			#tkMessageBox.showinfo('Playlist Creation', 'Creation of playlist: %s successful!\n\n Failed Songs:\n%s' % (self.playlistName, str_failed_songs))
+		#if failed songs exists but has no entries
+		elif self.failed_song_list:
+			tkMessageBox.showinfo('Playlist Creation', 'Creation of playlist: %s Successful!' % (self.playlistName))
+		else:
+			tkMessageBox.showinfo('Playlist Creation Error', 'Creation of playlist: %s unsuccessful!' % (self.playlistName))
+		
+		self.gmusic_window2.destroy()
+	
+	def export_missed_songs(self):
+		'''
+			Callback function for export_missed_songs_button
+			Export missed songs to a textfile
+		'''
+		if len(self.failed_song_list) is 0:
+			tkMessageBox.showinfo('Export Text', "Can't export an empty playlist.")
+		
+		#If not empty, write to file
+		else:
+			f = tkFileDialog.asksaveasfile(mode='w', defaultextension=".txt")
+			if f is None:
+				return
+
+			for song in self.failed_song_list:
+				f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
+
+			f.close()
+		self.missed_songs_window.destroy()
+		
+	def loading_window(self, title="Loading Bar", progress_increments=100):
+		self.loading_window = Toplevel(root, width=200, height=100)
+		self.loading_window.title(title)
+		self.loading_bar = ttk.Progressbar(self.loading_window, orient="horizontal", maximum=100, mode="determinate")
+		self.loading_bar["maximum"] = progress_increments
+		
+		self.loading_bar.grid(row=0, column=0, rowspan=100, columnspan=3, padx=10, pady=10)
+
+		
+		
+	
+	def step(self, num_items):
+		self.loading_bar["value"] = num_items
+		self.loading_bar.update_idletasks()
+		if self.loading_bar["maximum"] <= num_items:
+			self.loading_window.destroy()
+
+
+	
 	
 	#Updates the playlist in the viewer to match the playlist variable
 	def updatePlaylist(self):
@@ -623,7 +803,7 @@ class Application(Frame):
 
 		#The webscrape button
 		self.webscrape_button = Button(self, text="Import from Website")
-		self.webscrape_button["command"] = self.scrape
+		self.webscrape_button["command"] = self.scrape_options
 
 		self.webscrape_button.grid(row=8, column=6, padx=5, pady=5)
 
@@ -748,8 +928,8 @@ class Application(Frame):
 		#listbox callback for selecting multiple columns
 		self.create_widgets()
 
-		self.playlist_label_name = Label(self, text="Playlist Viewer")
-		self.playlist_label_name.grid(row=1, column=2)
+		self.playlist_label_name = Label(self, text="DittyGetty Playlist Viewer", font='helvetica 16')
+		self.playlist_label_name.grid(row=1, column=0, columnspan=6)
 		
 		#playlist view movement
 		self.playlist_view.bind('<1>', self.b_press)
@@ -799,6 +979,7 @@ class EntryAdvanced(Entry):
 			self.put_placeholder()
 			if self.connected_button:
 				self.connected_button.config(state='disabled')
+		
 	
 def main():
 	global root
