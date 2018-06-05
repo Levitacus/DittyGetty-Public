@@ -2,20 +2,19 @@
 
 DittyGetty is a tool to scrape playlists from JPR, modify those playlists, and export those playlists to Google Music.
 DittyGetty utilizes a GUI made from Tkinter from view the playlist and allow the user to make modifications.
+DittyGetty can be ran from the command prompt and uses Click to make the CLI.
 
-## Getting Started
+# Getting Started
 
-You can either install the windows or mac releases and run DittyGetty from the main file located in DittyGetty/dist or you can download all files and run from the command prompt.
-
-### Prerequisites
+## Prerequisites
 
 If you plan on executing DittyGetty from the command prompt you must have Python 2.7 installed https://www.python.org/download/releases/2.7/ 
 
 The following libraries are required to run the program:
 
 BeautifulSoup https://www.crummy.com/software/BeautifulSoup/bs4/doc/#  
-gmusicapi https://unofficial-google-music-api.readthedocs.io/en/latest/
-cryptography https://cryptography.io/en/latest/ for storing the password temporarily. 
+gmusicapi https://unofficial-google-music-api.readthedocs.io/en/latest/  
+Click http://click.pocoo.org/5/
 
 Download libraries with pip: 
 To check if you have pip installed:
@@ -36,17 +35,8 @@ $ python get-pip.py
 If you have pip all ready to go:
 ```
 $ pip install beautifulsoup4  
-$ pip install gmusicapi  
-$ pip install cryptography
-
-```
-
-### Running
-
-To run the gui from the command prompt, type the following command while in the DittyGetty directory:
-
-```
-python main.py
+$ pip install gmusicapi
+$ pip install click
 ```
 
 ## Command Line Interface
@@ -59,11 +49,11 @@ python setup.py install
 
 ### Commands
 
-export
+exports
 ```
-Usage: dittygetty export [OPTIONS] PLAYLIST_NAME
+Usage: dittygetty exports [OPTIONS] PLAYLIST_NAME
 
-  Exports a playlist to google music, default is active playlist, named PLAYLIST_NAME
+  Exports the active playlist to google music with the name [PLAYLIST_NAME]
 
 Options:
   --f TEXT  File: Export a file to Gmusic rather than the active playlist
@@ -83,13 +73,29 @@ Usage: dittygetty gui [OPTIONS]
 Options:
   --help  Show this message and exit.
 ```
-
-import
+imports
 ```
-Usage: dittygetty import [OPTIONS] DATE
+Usage: dittygetty imports [OPTIONS] COMMAND [ARGS]...
 
-      Imports a playlist from NPR or textfile Requires a date in the format
-      MM-DD-YYYY, 'today' or 'yesterday' keywords
+  Commands for importing a playlist
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  daily_playlist  Imports a playlist from dailyplaylist.com...
+  gmusic          Imports a playlist from gmusic, requires a...
+  jpr             Imports a playlist from JPR Requires a date...
+```
+
+imports commands
+
+    jpr
+```
+Usage: dittygetty imports jpr [OPTIONS] DATE
+
+      Imports a playlist from JPR Requires a date in the format MM-DD-YYYY,
+      'today' or 'yesterday' keywords
 
 Options:
   --t TEXT   Starting time for parse
@@ -98,7 +104,31 @@ Options:
              active playlist. Can use today and yesterday keywords.
   --help     Show this message and exit.
 ```
+    gmusic
+```
+Usage: dittygetty imports gmusic [OPTIONS] PLAYLIST_NAME
 
+  Imports a playlist from gmusic, requires a playlist name
+
+Options:
+  --f TEXT  File: Option to save imported songs to a file rather than the
+            active playlist. Can use today and yesterday keywords.
+  --help    Show this message and exit.
+```
+    daily_playlist
+```
+Usage: dittygetty imports daily_playlist [OPTIONS] NAME
+
+  Imports a playlist from dailyplaylist.com name argument is the url name
+  given to a playlist i.e. dailyplaylist.com/chill-daily/ chill-daily is
+  the playlist name
+
+Options:
+  --f TEXT  File: Option to save imported songs to a file rather than the
+            active playlist. Can use today and yesterday keywords.
+  --help    Show this message and exit.
+```
+  
 read
 ```
 Usage: dittygetty read [OPTIONS] FILE
@@ -134,7 +164,7 @@ Options:
 
 Playlist Commands:
   
-      add ---        Adds a song to the current playlist
+    add ---        Adds a song to the current playlist
 ```
       Usage: dittygetty playlist add [OPTIONS] SONG ARTIST
 
@@ -143,7 +173,7 @@ Playlist Commands:
       Options:
         --help  Show this message and exit.
 ```
-      clear ---      Clears playlist, default is active playlist
+    clear ---      Clears playlist, default is active playlist
 ```
       Usage: dittygetty playlist clear [OPTIONS]
 
@@ -152,7 +182,7 @@ Playlist Commands:
       Options:
         --help  Show this message and exit.
 ```
-      display ---    Displays playlist, default is active playlist
+    display ---    Displays playlist, default is active playlist
 ```
       Usage: dittygetty playlist display [OPTIONS]
 
@@ -166,7 +196,7 @@ Playlist Commands:
                   active playlist
         --help    Show this message and exit.
 ```
-      get_dir ---    Gets current app directory
+    get_dir ---    Gets current app directory
 ```
       Usage: dittygetty playlist get_dir [OPTIONS]
 
@@ -182,12 +212,12 @@ Dittygetty can easily be scheduled to run with crontab on Unix-like computer ope
 
 Here's an example of a cronjob that runs at 2:00 AM every day and imports 4-14-2018 from JPR into the text file "test.txt"
 ```
-crontab 0 2 * * * dittygetty import 4-14-2018 --f "test.txt"
+crontab 0 2 * * * dittygetty imports jpr --f "test.txt" 4-14-2018
 ```
 
 Using today keyword, runs at 11:59 PM every day and imports that day to a file named that date EX: 2018-05-22.txt 
 ```
-crontab 59 23 * * * dittygetty import --f today today
+crontab 59 23 * * * dittygetty imports jpr --f today today
 ```
 
 ## Logging in with Google Music
