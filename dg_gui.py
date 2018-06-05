@@ -678,19 +678,21 @@ class Application(Frame):
 		self.missed_songs_window.destroy()
 		
 	def loading_window_run(self, title="Loading Bar", progress_increments=100):
-		self.loading_window = Toplevel(root, width=200, height=100)
+		self.loading_window = Toplevel(self, width=200, height=100)
 		self.loading_window.title(title)
 		self.loading_bar = ttk.Progressbar(self.loading_window, orient="horizontal", maximum=100, mode="determinate")
 		self.loading_bar["maximum"] = progress_increments
 		
-		self.loading_bar.grid(row=0, column=0, rowspan=100, columnspan=3, padx=10, pady=10)
+		#self.loading_bar.grid(row=0, column=0, rowspan=100, columnspan=3, padx=10, pady=10)
+		self.loading_bar.pack()
 
 		
 		
 	
 	def step(self, num_items):
+		global root
 		self.loading_bar["value"] = num_items
-		self.loading_bar.update_idletasks()
+		self.loading_window.update()
 		if self.loading_bar["maximum"] <= num_items:
 			self.loading_window.destroy()
 
