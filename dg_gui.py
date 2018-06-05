@@ -6,7 +6,6 @@ from playlist import *
 from config import Config
 from npr import NPR
 from daily_playlist import DailyPlaylist
-from cryptography.fernet import Fernet
 import tkFileDialog
 import tkMessageBox
 import ttk
@@ -218,22 +217,15 @@ class Application(Frame):
 		if self.submit_button2['state'] == 'disabled':
 			return
 
-		self.playlist_username = self.playlist_username_entry.get()
-		self.playlist_password = self.playlist_password_entry.get()
+		playlist_username = self.playlist_username_entry.get()
+		playlist_password = self.playlist_password_entry.get()
 
-		if not loginGmusic(self.playlist_username, self.playlist_password):
+		if not loginGmusic(playlist_username, playlist_password):
 			tkMessageBox.showinfo('Login Failed', 'Login Failure, please check your internet connection and try again')
 		else:
 		
-			self.json_config['username'] = self.playlist_username
-			
-			self.key = Fernet.generate_key()
-			cipher_suite = Fernet(self.key)
-			
-			#self.json_config['key'] = self.key
-			#self.json_config['password'] = str(cipher_suite.encrypt(str(self.playlist_password.encode('utf-8').decode('utf-8'))))
-			
-			self.encrypted_pass = cipher_suite.encrypt(self.playlist_password)
+			self.json_config['username'] = playlist_username
+			self.json_config['password'] = playlist_password
 			
 			playlists_dict = gmusic_get_playlists_content()
 
@@ -244,26 +236,23 @@ class Application(Frame):
 			self.gmusic_window3 = Toplevel(root)
 			self.gmusic_window3.wm_title("Export")
 
-		
-
-
 			playlist_name_label = Label(self.gmusic_window3, text="Choose playlist to import")
-			self.playlists_listbox = Listbox(self.gmusic_window3, selectmode=SINGLE, width=50)
+			
+			#list of playlists with scrollbar
+			scrollbar = Scrollbar(self.gmusic_window3, orient=VERTICAL)
+			self.playlists_listbox = Listbox(self.gmusic_window3, selectmode=SINGLE, width=50, yscrollcommand=scrollbar.set)
+			scrollbar.config(command=self.playlists_listbox.yview)
 
 			for dicts in playlists_dict:
 				print(dicts['name'])
 				self.playlists_listbox.insert(END, dicts['name'])
 
-		
-
-
-			self.playlists_listbox.grid(row=1, column=0, padx=5, pady=5, sticky='ew')
-
 			self.gmusic_window3.submit_button2 = Button(self.gmusic_window3, text="Submit", command= lambda: self.import_gmusic_run(playlists_dict))	
 
-
+			#place the components
 			playlist_name_label.grid(row=0, column=0, sticky='ew')
-
+			self.playlists_listbox.grid(row=1, column=0, padx=5, pady=5, sticky='ew')
+			scrollbar.grid(row=1, column=1, sticky='wns')
 			self.gmusic_window3.submit_button2.grid(row=2, column=0)
 
 	def import_gmusic_run(self, playlists_dict):
@@ -313,7 +302,7 @@ class Application(Frame):
 
 	def login_gmusic(self, command_arg):
 		'''
-			Brings up a login window
+			Brings up a login window for google music
 		'''
 		#login to gmusic
 		self.delete_child_windows()
@@ -323,22 +312,13 @@ class Application(Frame):
 
 		try:
 			#get the username
-			self.username = self.json_config['username']
+			username = self.json_config['username']
 		except:
-			self.username = ''
+			username = ''
 		try:
-			#decrypt the password with the key and Fernet
-			
-			#self.key = self.json_config['key']
-			
-			cipher_suite = Fernet(self.key)
-			
-			self.password = cipher_suite.decrypt(self.encrypted_pass)
-			#self.password = str(cipher_suite.decrypt(str(self.json_config['password'].encode('utf-8').decode('utf-8'))))
-			#print type(self.password)
+			password = self.json_config['password']
 		except Exception as e:
-			#print e
-			self.password = ''
+			password = ''
 			
 		self.default_name = StringVar(root)
 		self.default_pass = StringVar(root)
@@ -354,8 +334,8 @@ class Application(Frame):
 		self.submit_button2 = Button(self.gmusic_window, text="Submit", command=command_arg, state='disabled')
 		
 		#set the stringargs
-		self.default_name.set(self.username)
-		self.default_pass.set(self.password)
+		self.default_name.set(username)
+		self.default_pass.set(password)
 
 		self.gmusic_window.bind("<Return>", command_arg)
 
@@ -370,27 +350,20 @@ class Application(Frame):
 	def export_gmusic(self, event=None):
 		'''
 			Callback function for export gmusic button
-			Logs in and brings up a list of paylists
+			Logs in and brings up a list of playlists
 		'''
 		if self.submit_button2['state'] == 'disabled':
 			return
 
-		self.playlist_username = self.playlist_username_entry.get()
-		self.playlist_password = self.playlist_password_entry.get()
+		playlist_username = self.playlist_username_entry.get()
+		playlist_password = self.playlist_password_entry.get()
 
-		if not loginGmusic(self.playlist_username, self.playlist_password):
+		if not loginGmusic(playlist_username, playlist_password):
 			tkMessageBox.showinfo('Login Failed', 'Login Failure, please check your internet connection and try again')
 		else:
 		
-			self.json_config['username'] = self.playlist_username
-			
-			self.key = Fernet.generate_key()
-			cipher_suite = Fernet(self.key)
-			
-			#self.json_config['key'] = self.key
-			#self.json_config['password'] = str(cipher_suite.encrypt(str(self.playlist_password.encode('utf-8').decode('utf-8'))))
-			
-			self.encrypted_pass = cipher_suite.encrypt(self.playlist_password)
+			self.json_config['username'] = playlist_username
+			self.json_config['password'] = playlist_password
 			
 			playlists_dict = gmusic_get_playlists()
 
@@ -405,27 +378,28 @@ class Application(Frame):
 			default_name = StringVar(root, value='New playlist name')
 			self.playlist_name_entry = Entry(self.gmusic_window2, width=50, textvariable=default_name)
 			playlist_name_label = Label(self.gmusic_window2, text="Choose pre-existing playlist to add to or enter a new playlist name.")
-			#self.playlist_entry_label = Label(self.gmusic_window2)
-			self.playlists_listbox = Listbox(self.gmusic_window2, selectmode=SINGLE, width=50)
+			
+			#List of playlists with scrollbar
+			scrollbar = Scrollbar(self.gmusic_window2, orient=VERTICAL)
+			self.playlists_listbox = Listbox(self.gmusic_window2, selectmode=SINGLE, width=50, yscrollcommand=scrollbar.set)
+			scrollbar.config(command=self.playlists_listbox.yview)
 
 			for dicts in playlists_dict:
 				print(dicts['name'])
 				self.playlists_listbox.insert(END, dicts['name'])
 
-	
-			self.playlists_listbox.grid(row=1, column=0, padx=5, pady=5, sticky='ew')
 			
 			self.merge_bool = IntVar()
 			self.merge_check = Checkbutton(self.gmusic_window2, text="Merge(remove duplicates)", var=self.merge_bool)
 
 			#use lambda expression to pass arguments to export_gmusic_run function
-			self.gmusic_window2.submit_button2 = Button(self.gmusic_window2, text="Submit", command= lambda: self.export_gmusic_run(playlists_dict))	
+			self.gmusic_window2.submit_button2 = Button(self.gmusic_window2, text="Submit", command= lambda: self.export_gmusic_run(playlists_dict))
 
-
+			#place the components
+			self.playlists_listbox.grid(row=1, column=0, padx=5, pady=5, sticky='ew')
 			playlist_name_label.grid(row=0, column=0, sticky='ew')
-
 			self.merge_check.grid(row=2, column=0)
-			#self.playlist_entry_label.grid(row=3, column=0)
+			scrollbar.grid(row=1, column=1, sticky="nsw")
 			self.playlist_name_entry.grid(row=3, column=0)	
 			self.gmusic_window2.submit_button2.grid(row=4, column=0)
 		
@@ -575,12 +549,6 @@ class Application(Frame):
 		startTime = self.startTime_entry.get()
 		endTime = self.endTime_entry.get()
 		
-		# if month is not '':
-			# if int(month) is 2:
-				# day_regex = '[1-9]|0[1-9]|[1-2][1-9]|[2][8]'
-			# else:
-				# day_regex = '[1-9]|0[1-9]|[1-2][1-9]|[3][0-1]'
-		
 		#The regex checks
 		month_check = re.match('0*([1-9]|0[1-9]|[1][0-2])$', month)
 		day_check = re.match('0*([1-9]|0[1-9]|[1-2][0-9]|[3][0-1])$', day)
@@ -623,15 +591,6 @@ class Application(Frame):
 		existing = False
 		
 		length = len(playlist.get())
-		#self.loading_window = Toplevel(root)
-		#self.loading_window.title("Export progress")
-		#self.loading_bar = ttk.Progressbar(self.loading_window, orient="horizontal", length=200, mode="determinate")
-		#self.loading_bar["maximum"] = 100
-		
-		#self.loading_bar.grid(row=0, column=0, rowspan=100)
-		#self.loading_bar.update_idletasks()
-
-		#value = 0
 
 		
 		select_tuple = self.playlists_listbox.curselection()
@@ -690,7 +649,6 @@ class Application(Frame):
 			
 			ok_button.grid(row=1, column=1)
 			self.export_missed_songs_button.grid(row=1, column=2)
-			#tkMessageBox.showinfo('Playlist Creation', 'Creation of playlist: %s successful!\n\n Failed Songs:\n%s' % (self.playlistName, str_failed_songs))
 		#if failed songs exists but has no entries
 		elif self.failed_song_list:
 			tkMessageBox.showinfo('Playlist Creation', 'Creation of playlist: %s Successful!' % (self.playlistName))
@@ -753,39 +711,32 @@ class Application(Frame):
 	def create_widgets(self):
 		
 		#help button
-		self.help_button = Button(self, text="Help")
-		self.help_button["command"] = self.helpbox
+		self.help_button = Button(self, text="Help", command=self.helpbox)
 		
 		self.help_button.grid(row=1, column=6, padx=5)
 	
 		#The add button
-		self.add_button = Button(self, text="Add Song")
-		self.add_button["command"] = self.add_song_option
+		self.add_button = Button(self, text="Add Song", command=self.add_song_option)
 
 		self.add_button.grid(row=3, column=6, padx=5)
 		
 		#The remove button
-		self.remove_button = Button(self, text="Remove Song")
-		self.remove_button["command"] = self.remove_song
+		self.remove_button = Button(self, text="Remove Song", command=self.remove_song)
 
 		self.remove_button.grid(row=4, column=6, padx=5)
 		
 		#The clear button
-		self.clear_button = Button(self, text="Clear Songs")
-		self.clear_button["command"] = self.clear_songs
-
+		self.clear_button = Button(self, text="Clear Songs", command=self.clear_songs)
 		self.clear_button.grid(row=5, column=6, padx=5)
 		
 		#The import text button
-		self.import_text_button = Button(self, text="Import as Textfile")
-		self.import_text_button["command"] = self.import_text
+		self.import_text_button = Button(self, text="Import as Textfile", command=self.import_text)
 
 		self.import_text_button.grid(row=10, column=1, pady=5)
 
 
 		#The export text button
-		self.export_text_button = Button(self, text="Export as Textfile")
-		self.export_text_button["command"] = self.export_text
+		self.export_text_button = Button(self, text="Export as Textfile", command=self.export_text)
 
 		self.export_text_button.grid(row=10, column=2, pady=5)
 
@@ -802,9 +753,8 @@ class Application(Frame):
 		self.import_text_button.grid(row=10, column=3, pady=5)
 
 		#The webscrape button
-		self.webscrape_button = Button(self, text="Import from Website")
-		self.webscrape_button["command"] = self.scrape_options
-
+		self.webscrape_button = Button(self, text="Import from Website", command=self.scrape_options)
+		
 		self.webscrape_button.grid(row=8, column=6, padx=5, pady=5)
 
 	def b_press(self, event):
@@ -880,15 +830,6 @@ class Application(Frame):
 		self.grid()
 		master.protocol("WM_DELETE_WINDOW", self.on_exit)
 		
-		
-		
-		#The playlist viewer
-		scrollbar = Scrollbar(self, orient=VERTICAL)
-		#self.playlist_viewer_name = Listbox(self, exportselection=0, selectmode=MULTIPLE, height=30, width=25, yscrollcommand=scrollbar.set)
-		#self.playlist_viewer_artist = Listbox(self, exportselection=0, selectmode=MULTIPLE, height=30, width=25, yscrollcommand=scrollbar.set)
-		
-		#self.updatePlaylist()
-        
         #json file object
 		self.json_config = Config()
         
@@ -901,13 +842,9 @@ class Application(Frame):
 		except KeyError:
 			print "Hey"
 			pass
-			
 		
-		#self.playlist_viewer_name.grid(row=2, column=1, rowspan=8, sticky="nesw")
-		#self.playlist_viewer_artist.grid(row=2, column=2, rowspan=8, sticky="nesw")
-
-
-		
+		#The playlist viewer
+		scrollbar = Scrollbar(self, orient=VERTICAL)
 		self.playlist_view = ttk.Treeview(self, height=30, yscrollcommand=scrollbar.set)
 		self.playlist_view["columns"]=("zero", "one", "two")
 		self.playlist_view.column("zero", width=150)
@@ -921,7 +858,7 @@ class Application(Frame):
 		self.playlist_view['show'] = 'headings'
 
 		scrollbar.config(command=self.playlist_view.yview)
-
+		
 		self.playlist_view.grid(row=2, column=1, rowspan=8, columnspan=4, padx=5, sticky="nesw")
 		scrollbar.grid(row=2, column=5, rowspan=8, sticky="nsw")
 

@@ -110,31 +110,29 @@ def playlist_clear(config):
         click.echo('ERROR: Active playlist clear unsuccessful') 
 
 @entry_point.command('search')
-#@click.option('--jpr', '-j', help='Imports a playlist from jpr requires date input "MM-DD-YYYY"')
 @click.argument('search_str')
-#@click.option('--f', help='File: Option to save imported songs to a file rather than the active playlist. Can use today and yesterday keywords.')
 @pass_config
-def playlist_import(config, search_str):
+def search(config, search_str):
 	'''
 	Searches a string on google music
 	'''
 	
 	if not cli_login():
-			raise click.ClickException('Invalid Google Music Account Login')
+		raise click.ClickException('Invalid Google Music Account Login')
 
 	searched_list = search_songs(search_str)
-
+	
 	if not searched_list:
 		click.echo('No songs found with those search terms.')
 
 	else:
 		for songs in searched_list:
 			print songs
+			
 
 	
 
 @imports.command('jpr')
-#@click.option('--jpr', '-j', help='Imports a playlist from jpr requires date input "MM-DD-YYYY"')
 @click.argument('date')
 @click.option('--t', help='Starting time for parse', default="00:00")
 @click.option('--et', help='Ending time for parse', default="23:59")
@@ -309,7 +307,7 @@ def playlist_write(config, file, m):
 @pass_config
 def playlist_export(config, f, e, m, playlist_name):
 	'''
-    Exports the active playlist to google music
+    Exports the active playlist to google music with the name [PLAYLIST_NAME]
     '''
 	temp_playlist = Playlist()
 	success = False
@@ -350,7 +348,21 @@ def playlist_export(config, f, e, m, playlist_name):
 		pass
 	#except Exception as e:
 		#raise click.ClickException('Export failed')
-
+		
+@entry_point.command('reset')
+@pass_config
+def reset(config):
+	'''
+		Resets the user's username and password
+	'''
+	try:
+		config['password'] = ''
+		config['username'] = ''
+		config.save()
+		click.echo('Your username and password have been reset')
+	except:
+		pass
+		
 @playlist.command('get_dir')
 @pass_config
 def playlist_get_dir(config):
@@ -395,16 +407,30 @@ def read_playlist(file):
 
 	return temp_playlist
 
-def cli_login():
+@pass_config
+def cli_login(config):
 	'''
 	Prompts user for login information and returns
 	results of login
 	'''
+	
+	if config['username'] and config['password']:
+		login = config['username']
+		password = config['password']
 
-	login = click.prompt('Enter Google Music username: ')
-	password = click.prompt('Enter Google Music password: ', hide_input=True)
-
-	return loginGmusic(login, password)
+	else:
+		login = click.prompt('Enter Google Music username: ')
+		password = click.prompt('Enter Google Music password: ', hide_input=True)
+			
+	
+	valid_login = loginGmusic(login, password)
+	
+	if valid_login:
+		config['username'] = login
+		config['password'] = password
+		config.save()
+		
+	return valid_login
 
 def upload_gmusic_loading(playlist_name_id, songs_list, existing=False, merge=False):
 	ids_list = []
@@ -417,8 +443,11 @@ def upload_gmusic_loading(playlist_name_id, songs_list, existing=False, merge=Fa
 			ids_list.append(song_id)
 		else:
 			failed_songs.append(song)
-		
-		print_loading_bar(i, len(songs_list) - 1)
+			
+		if os.name == 'nt':
+			print_loading_bar(i, len(songs_list) - 1, fill='X')
+		else:
+			print_loading_bar(i, len(songs_list) - 1)
 
 	return upload_ids_gmusic(playlist_name_id, ids_list, existing, merge)
 
