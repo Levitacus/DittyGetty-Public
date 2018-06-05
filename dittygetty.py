@@ -114,9 +114,9 @@ def playlist_clear(config):
 @entry_point.command('search')
 @click.argument('search_str')
 @click.option('--f', help='File: Option to save searched songs to a file rather than the active playlist.')
-@click.option('--m', help='Set max number of results for the search')
+@click.option('--m', help='Set max number of results for the search', default=10)
 @pass_config
-def search(config, search_str, f):
+def search(config, search_str, f, m):
 	'''
 	Searches a string on google music
 	'''
@@ -124,7 +124,7 @@ def search(config, search_str, f):
 	if not cli_login():
 		raise click.ClickException('Invalid Google Music Account Login')
 
-	searched_list = search_songs_text(search_str)
+	searched_list = search_songs_text(search_str, m)
 	
 	if not searched_list:
 		click.echo('No songs found with those search terms.')
