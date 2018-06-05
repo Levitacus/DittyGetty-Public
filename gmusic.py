@@ -15,8 +15,8 @@ def findTrackElement(searchDict, element):
 
 	return finalList
 
-def search_songs(search_str):
-	search = api.search(search_str, max_results=10)
+def search_songs_text(search_str, max):
+	search = api.search(search_str, max_results=max)
 	song_list = list()
 
 	i = 0
@@ -24,6 +24,18 @@ def search_songs(search_str):
 	for songs in search['song_hits']:
 		i += 1
 		song_list.append("%d: Title: %s Artist: %s Album: %s" % (i, songs['track']['title'], songs['track']['artist'], songs['track']['album']))
+
+	return song_list
+
+def search_songs_obj(search_str, max):
+	search = api.search(search_str, max_results=max)
+	song_list = list()
+
+	i = 0
+
+	for songs in search['song_hits']:
+		i += 1
+		song_list.append(SongInfo(songs['track']['title'], songs['track']['artist']))
 
 	return song_list
 

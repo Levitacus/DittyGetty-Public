@@ -94,6 +94,8 @@ def playlist_display(config, ff, f):
 		else:
 			print("" + song.toString())
 
+
+
 @playlist.command('clear')
 @pass_config
 def playlist_clear(config):
@@ -111,8 +113,10 @@ def playlist_clear(config):
 
 @entry_point.command('search')
 @click.argument('search_str')
+@click.option('--f', help='File: Option to save searched songs to a file rather than the active playlist.')
+@click.option('--m', help='Set max number of results for the search')
 @pass_config
-def search(config, search_str):
+def search(config, search_str, f):
 	'''
 	Searches a string on google music
 	'''
@@ -120,7 +124,7 @@ def search(config, search_str):
 	if not cli_login():
 		raise click.ClickException('Invalid Google Music Account Login')
 
-	searched_list = search_songs(search_str)
+	searched_list = search_songs_text(search_str)
 	
 	if not searched_list:
 		click.echo('No songs found with those search terms.')
@@ -128,6 +132,34 @@ def search(config, search_str):
 	else:
 		for songs in searched_list:
 			print songs
+
+		if f:
+			prompt_string = ("Do you wish to save the searched songs to %s(y/n)?" % (f))
+		else:
+			prompt_string = "Do you wish to save the searched songs to your active playlist(y/n)?"
+
+		choice = click.prompt(prompt_string)
+
+		if choice.lower() != 'y':
+			return
+
+		temp_playlist = Playlist()
+		temp_playlist.set(search_songs_obj(search_str))
+
+	if f and len(temp_playlist.playlist) != 0:
+		try:
+			with open(f, 'w') as f:
+				for song in temp_playlist.get():
+					f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
+		except KeyError:
+			pass
+		except Exception as e:
+			print e
+	else:
+		playlist_dict = temp_playlist.to_dict()
+		
+		config['playlist_cli'] = playlist_dict
+		config.save()
 			
 
 	
@@ -179,6 +211,60 @@ def playlist_import(config, date, t, et, f):
 			f = datetime.today().strftime('%Y-%m-%d') +".txt"
 		elif f == "yesterday":
 			f = (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d') +".txt"
+		try:
+			with open(f, 'w') as f:
+				for song in temp_playlist.get():
+					f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
+		except KeyError:
+			pass
+		except Exception as e:
+			print e
+		
+	elif len(temp_playlist.playlist) != 0:
+		playlist_dict = temp_playlist.to_dict()
+		
+		config['playlist_cli'] = playlist_dict
+		config.save()
+	else:
+		print "No playlist found."
+
+@imports.command('gmusic')
+@click.argument('playlist_name')
+@click.option('--f', help='File: Option to save imported songs to a file rather than the active playlist. Can use today and yesterday keywords.')
+@pass_config
+def playlist_import(config, playlist_name, f):
+	'''
+	Imports a playlist from gmusic, requires a playlist name
+	'''
+	if not cli_login():
+			raise click.ClickException('Invalid Google Music Account Login')
+
+	try:
+		temp_playlist = Playlist()
+		playlist_dict = {}
+	
+		for playlists in gmusic_get_playlists_content():
+			if playlists['name'] == playlist_name:
+				playlist_dict = playlists
+				break
+
+	
+		if playlist_dict:
+			track_list = playlist_dict['tracks']
+			
+
+			gmusic_songs = []
+
+			for track in track_list:
+				gmusic_songs.append(SongInfo(track['track']['title'].encode('ascii', 'ignore'), track['track']['artist'].encode('ascii', 'ignore')))
+			temp_playlist.set(gmusic_songs)
+		else:
+			raise IndexError()
+
+	except:
+		raise click.UsageError('Playlist name must be a valid playlist in your gmusic account.')
+
+	if f and len(temp_playlist.playlist) != 0:
 		try:
 			with open(f, 'w') as f:
 				for song in temp_playlist.get():
