@@ -609,7 +609,7 @@ class Application(Frame):
 			self.playlistID = self.playlistName
 			#self.failed_song_list = uploadSongsGmusic(self.playlistName, playlist.get())
 
-		self.loading_window("Loading", len(playlist.get()))
+		self.loading_window_run("Loading", len(playlist.get()))
 			
 		i = 0
 
@@ -677,7 +677,7 @@ class Application(Frame):
 			f.close()
 		self.missed_songs_window.destroy()
 		
-	def loading_window(self, title="Loading Bar", progress_increments=100):
+	def loading_window_run(self, title="Loading Bar", progress_increments=100):
 		self.loading_window = Toplevel(root, width=200, height=100)
 		self.loading_window.title(title)
 		self.loading_bar = ttk.Progressbar(self.loading_window, orient="horizontal", maximum=100, mode="determinate")
