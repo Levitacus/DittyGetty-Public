@@ -1,8 +1,8 @@
 # DittyGetty
 
-DittyGetty is a tool to scrape playlists from JPR, modify those playlists, and export those playlists to Google Music.
-DittyGetty utilizes a GUI made from Tkinter from view the playlist and allow the user to make modifications.
-DittyGetty can be ran from the command prompt and uses Click to make the CLI.
+DittyGetty is a tool used to scrape playlists from JPR, modify those playlists, and export those playlists to Google Music.
+DittyGetty utilizes a GUI made from Tkinter to display the playlist and allow the user to make modifications.
+DittyGetty can be run from the command prompt and uses Click to make the CLI.
 
 # Getting Started
 
