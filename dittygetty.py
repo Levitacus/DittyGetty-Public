@@ -547,8 +547,10 @@ def print_loading_bar (iteration, total, length = 20, fill = '█'):
 	length      - Optional  : character length of bar (Int)
 	fill        - Optional  : bar fill character (Str)
 	"""
+	#if total actions is 0
 	if total <= 0:
 		total = 1
+		iteration += 1
 
 	percent = ("{0:." + str(2) + "f}").format(100 * (iteration / float(total)))
 	filledLength = int(length * iteration // total)
