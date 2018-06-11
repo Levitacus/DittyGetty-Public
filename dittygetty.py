@@ -416,17 +416,34 @@ def playlist_export(config, f, e, m, playlist_name):
 					playlist_id = dicts['id']
 			
 			if(playlist_id):
-				success = upload_gmusic_loading(playlist_id, temp_playlist.get(), e, m)
+				gmusic_tuple = upload_gmusic_loading(playlist_id, temp_playlist.get(), e, m)
 			else:
 				click.echo('Could not find existing playlist:  %s, creating new playlist' % playlist_name)
-				success = upload_gmusic_loading(playlist_name, temp_playlist.get())
+				gmusic_tuple = upload_gmusic_loading(playlist_name, temp_playlist.get())
 
 		else:
 			click.echo('Creating new playlist: %s' % playlist_name)
-			success = upload_gmusic_loading(playlist_name, temp_playlist.get())
+			gmusic_tuple = upload_gmusic_loading(playlist_name, temp_playlist.get())
 
-		if(success):
+		if(gmusic_tuple[0]):
+			if gmusic_tuple[1]:
+				prompt = click.prompt(str(len(gmusic_tuple[1])) + ' songs failed to upload, would you like to export these songs to a file?(y/n)')
+				if prompt.lower() == 'y':
+					f_str = ("failed_songs%s.txt" % datetime.now().strftime("%Y-%m-%d-%H:%M:%S"))
+					try:
+						with open(f_str, 'w') as f:
+							for song in gmusic_tuple[1]:
+								f.write("%s||%s||%s\n" % (song.songTime, song.songName, song.songArtist))
+						click.echo('Failed songs songs saved to: %s' % f_str)
+					except KeyError:
+						pass
+					except Exception as e:
+						print e
+				
 			click.echo('Export successful, songs added to: %s' % playlist_name)
+
+				
+			
 		else:
 			raise click.ClickException('Export failed')
 
@@ -535,7 +552,7 @@ def upload_gmusic_loading(playlist_name_id, songs_list, existing=False, merge=Fa
 		else:
 			print_loading_bar(i, len(songs_list) - 1)
 
-	return upload_ids_gmusic(playlist_name_id, ids_list, existing, merge)
+	return (upload_ids_gmusic(playlist_name_id, ids_list, existing, merge), failed_songs)
 
 
 def print_loading_bar (iteration, total, length = 20, fill = '█'):

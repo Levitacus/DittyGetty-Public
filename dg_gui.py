@@ -650,7 +650,7 @@ class Application(Frame):
 			ok_button.grid(row=1, column=1)
 			self.export_missed_songs_button.grid(row=1, column=2)
 		#if failed songs exists but has no entries
-		elif self.failed_song_list:
+		elif test:
 			tkMessageBox.showinfo('Playlist Creation', 'Creation of playlist: %s Successful!' % (self.playlistName))
 		else:
 			tkMessageBox.showinfo('Playlist Creation Error', 'Creation of playlist: %s unsuccessful!' % (self.playlistName))
