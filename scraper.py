@@ -4,6 +4,7 @@ from songInfo import SongInfo
 import re
 import urllib2
 from bs4 import BeautifulSoup
+import ssl
 
 class Scraper(object):
 	
@@ -19,7 +20,10 @@ class Scraper(object):
 		self._page = new_page
 
 	def generate_page_scraper(self):
-		opened_page = urllib2.urlopen(self._page)
+		ctx = ssl.create_default_context()
+		ctx.check_hostname = False
+		ctx.verify_mode = ssl.CERT_NONE
+		opened_page = urllib2.urlopen(self._page, context = ctx)
 		self._page_scraper = BeautifulSoup(opened_page, 'lxml')
 
 	#full list of functions and code for parsing any npr station's schedule
