@@ -150,6 +150,9 @@ def uploadSongsGmusic(playlist_name_id, songArtistList, existing=False, merge=Fa
 def gmusic_get_playlists():
 	return api.get_all_playlists()
 
+def gmusic_delete_playlist(playlist_id):
+	return api.delete_playlist(playlist_id)
+
 def gmusic_get_playlists_content():
 	return api.get_all_user_playlist_contents()
 

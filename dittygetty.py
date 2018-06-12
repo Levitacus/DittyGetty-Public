@@ -199,8 +199,8 @@ def playlist_import(config, date, t, et, f):
 			month = int(tokens[0])
 			day = int(tokens[1])
 			year = int(tokens[2])
-		print t
-		print et
+		#print t
+		#print et
 		jpr = NPR("520a4969e1c85ef575dd2484")
 		temp_playlist.set(jpr.scrape_run(month, day, year, t, et))
 	except:

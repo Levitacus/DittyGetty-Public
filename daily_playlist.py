@@ -1,6 +1,5 @@
 import time
 import json
-import pprint
 from helperFuncs import timeObject
 from songInfo import SongInfo
 import re
@@ -19,11 +18,8 @@ class DailyPlaylist(Scraper):
 	def scrape_body(self):
 		self.set_page('http://dailyplaylists.com/%s/' % (self._playlist_name))
 		self.generate_page_scraper()
-		#print(self._page_scraper)
 		#find page for widget to load
 		widget_page = self._page_scraper.find('iframe')['src']
-		#print(widget_page)
-		#widget_page = "http://composer.nprstations.org/widgets/iframe/daily.html?station=520a4969e1c85ef575dd2484"
 		self.set_page(widget_page)
 		self.generate_page_scraper()
 
@@ -31,20 +27,12 @@ class DailyPlaylist(Scraper):
 
 		time.sleep(3)
 
-		#print(self._page_scraper)
 
 		#song_data_list = self.findElementClassTokens('div', 'a b c d e f g h i j k l', "||")
 
 		json_text = self._page_scraper.find('script',  {'id':'resource'}).get_text()
 
 		scraped_dict = json.loads(json_text)
-
-		#pprint.pprint(scraped_dict['tracks']['items'][0])
-
-		#print(scraped_dict['tracks']['items'][0]['track']['name'])
-		#print(scraped_dict['tracks']['items'][0]['track']['artists'][0]['name'])
-
-		
 
 
 		scraped_song_list = list()

@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="dittygetty",
-    version="0.0.1",
+    version="1.0.0",
     py_modules=["dittygetty", "config", "playlist", "songInfo", "helperFuncs", "gmusic", "dg_gui", "daily_playlist", "npr", "scraper"],
     install_requires=["Click", "gmusicapi", "beautifulsoup4", "lxml"],
     

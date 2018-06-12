@@ -55,7 +55,7 @@ class Scraper(object):
 	def findElementClass(self, elementTag, className, driver=None):
 		if not driver:
 			driver = self._page_scraper
-		print className
+		#print className
 		elements = driver.find_all(elementTag,  {'class':className})
 
 		return elements
