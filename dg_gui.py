@@ -17,7 +17,6 @@ import string
 
 
 #The current playlist that is viewed, needs to be global.
-#Probably not good that it's global, but whatever...
 playlist = Playlist()
 
 class Application(Frame):
@@ -29,7 +28,8 @@ class Application(Frame):
 		count = True
 		children_list = root.winfo_children()
 		for children in children_list:
-			if(count):
+			
+			if(count) or isinstance(children, Menu):
 				count = False
 			else:
 				children.destroy()
@@ -80,6 +80,8 @@ class Application(Frame):
 		
 		self.add_window.submit_button.grid(row=2, column=2)
 		self.add_error_label.grid(row=3, column=0, columnspan=3)
+
+		self.center_window(self.add_window)
 		
 	
 	def add_song(self):
@@ -108,8 +110,6 @@ class Application(Frame):
 			Callback function for the help button
 			Gives the user instructions to operate the gui
 		'''
-
-
 		
 		self.help_window = Toplevel(root, width="500")
 		self.help_window.wm_title("Help")
@@ -122,6 +122,7 @@ class Application(Frame):
 			
 			label1.grid(row=i, column=0, sticky=W)
 			label2.grid(row=i, column=1, sticky=W)
+		self.center_window(self.help_window)
 		#help_label.grid(row=0, column=0, columnspan=2, rowspan=len(options))
 		
 	def remove_song(self):
@@ -136,8 +137,6 @@ class Application(Frame):
 			#del playlist[self.playlist_view.index(item) - count]
 			playlist.remove(self.playlist_view.index(item))
 			self.playlist_view.delete(item)
-			#print(self.playlist_view.get(item - count))
-			#count += 1
 			
 		
 	def clear_songs(self):
@@ -149,7 +148,6 @@ class Application(Frame):
 		#playlist = list()
 		playlist.clear()
 		self.playlist_view.delete(*self.playlist_view.get_children())
-		print "Clear!"
 		
 	def import_text(self):
 		'''
@@ -245,7 +243,7 @@ class Application(Frame):
 			scrollbar.config(command=self.playlists_listbox.yview)
 
 			for dicts in playlists_dict:
-				print(dicts['name'])
+				#print(dicts['name'])
 				self.playlists_listbox.insert(END, dicts['name'])
 
 			self.gmusic_window3.submit_button2 = Button(self.gmusic_window3, text="Submit", command= lambda: self.import_gmusic_run(playlists_dict))	
@@ -255,6 +253,8 @@ class Application(Frame):
 			self.playlists_listbox.grid(row=1, column=0, padx=5, pady=5, sticky='ew')
 			scrollbar.grid(row=1, column=1, sticky='wns')
 			self.gmusic_window3.submit_button2.grid(row=2, column=0)
+
+			self.center_window(self.gmusic_window3)
 
 	def import_gmusic_run(self, playlists_dict):
 		'''
@@ -347,6 +347,7 @@ class Application(Frame):
 		self.playlist_password_entry.grid(row=2, column=2)	
 
 		self.submit_button2.grid(row=4, column=1, pady=15, sticky="s")
+		self.center_window(self.gmusic_window)
 		
 	def export_gmusic(self, event=None):
 		'''
@@ -386,7 +387,7 @@ class Application(Frame):
 			scrollbar.config(command=self.playlists_listbox.yview)
 
 			for dicts in playlists_dict:
-				print(dicts['name'])
+				#print(dicts['name'])
 				self.playlists_listbox.insert(END, dicts['name'])
 
 			
@@ -403,6 +404,8 @@ class Application(Frame):
 			scrollbar.grid(row=1, column=1, sticky="nsw")
 			self.playlist_name_entry.grid(row=3, column=0)	
 			self.gmusic_window2.submit_button2.grid(row=4, column=0)
+
+			self.center_window(self.gmusic_window2)
 		
 	def scrape_options(self):
 		self.delete_child_windows()
@@ -410,7 +413,8 @@ class Application(Frame):
 		scrape_option_window.wm_title("Scrape Option")
 		site_choice = StringVar()
 		
-		combobox_values = ['Jefferson Public Radio', 'Daily Playlist']
+		#options
+		combobox_values = ['Jefferson Public Radio', 'Jefferson Public Radio - Classics', 'KLCC', 'Daily Playlist']
 		
 		label = Label(scrape_option_window, text="Choose a website to scrape.")
 		site_combobox = ttk.Combobox(scrape_option_window, textvariable=site_choice, values=combobox_values)
@@ -421,12 +425,21 @@ class Application(Frame):
 		label.grid(row=1, column=3, rowspan=2, columnspan=5, padx=50)
 		site_combobox.grid(row=3, column=3, rowspan=2, columnspan=5, padx=50, pady=(10,20))
 		submit.grid(row=5, column=3, columnspan=5, padx=50, pady=(0, 50))
+		
+		self.center_window(scrape_option_window)
 
 	def determine_site(self, site):
 		if site is None:
 			pass
 		elif site == 'Jefferson Public Radio' or site == 'JPR' or site == 'jpr':
-			self.jpr_scrape()
+			self.npr_scrape('520a4969e1c85ef575dd2484')
+		
+		elif site == 'Jefferson Public Radio - Classics':
+			self.npr_scrape('520a42b0e1c8eb30d9d7f0b7')
+
+		elif site == 'KLCC':
+			self.npr_scrape('520a4984e1c8e13a9ec5e282')
+		
 		elif site == 'Daily Playlist':
 			self.dp_scrape()
 		else:
@@ -457,6 +470,7 @@ class Application(Frame):
 		label.grid(row=1, column=3, rowspan=2, columnspan=5, padx=50)
 		dp_combobox.grid(row=3, column=3, rowspan=2, columnspan=5, padx=50, pady=(10,20))
 		submit.grid(row=5, column=3, columnspan=5, padx=50, pady=(0, 50))
+		self.center_window(self.dp_scrape_window)
 		pass
 		
 	def dp_playlist(self, daily_playlist):
@@ -475,7 +489,7 @@ class Application(Frame):
 		except:
 			tkMessageBox.showinfo('DailyPlaylist Import', 'That playlist doesn\'t exist')
 	
-	def jpr_scrape(self):
+	def npr_scrape(self, station):
 		'''
 			Asks for date and time to scrape JPR
 		'''
@@ -506,11 +520,13 @@ class Application(Frame):
 		endTime_label = Label(self.scrape_window, text="End Time")
 		
 		hyphen_label = Label(self.scrape_window, text="---")
+
 		
 		#important that the callback function here just references the command, not passing it
-		self.scrape_window.submit_button = Button(self.scrape_window, text="Submit", command=self.jpr_playlist)
+		self.scrape_window.submit_button = Button(self.scrape_window, text="Submit")
+		self.scrape_window.submit_button["command"] = lambda: self.jpr_playlist(station)
 		#bind enter key to submit button
-		self.scrape_window.bind("<Return>", lambda e: self.jpr_playlist())
+		self.scrape_window.bind("<Return>", lambda e: self.jpr_playlist(station))
 
 		#error label
 		self.scrape_error_label = Label(self.scrape_window, textvariable=self.scrape_error)
@@ -536,8 +552,10 @@ class Application(Frame):
 		
 		self.scrape_window.submit_button.grid(row=5, column=1)
 		self.scrape_error_label.grid(row=6, column=0, columnspan=3)
+
+		self.center_window(self.scrape_window)
 	
-	def jpr_playlist(self):
+	def jpr_playlist(self, station_code):
 		'''
 			Callback function for the jpr_scrape() submit_button
 			Actually scrapes the website
@@ -571,7 +589,7 @@ class Application(Frame):
 			month_int, day_int, year_int = int(month), int(day), int(year)
 			#call getList function from jpr.py
 			try:
-				jpr = NPR("520a4969e1c85ef575dd2484")
+				jpr = NPR(station_code)
 				playlist.set(jpr.scrape_run(month_int, day_int, year_int, startTime, endTime))
 				self.updatePlaylist()
 				self.scrape_window.destroy()
@@ -626,7 +644,7 @@ class Application(Frame):
 			
 		test = upload_ids_gmusic(self.playlistID, ids_list, existing, merge=self.merge_bool.get())
 
-		print(playlist_select_index)
+		#print(playlist_select_index)
 
 		#if failed songs is a list and has entries
 		if len(self.failed_song_list) > 0 and isinstance(self.failed_song_list, list):
@@ -636,20 +654,43 @@ class Application(Frame):
 				str_failed_songs += (str(count) + ": " + songs.toString() + "\n\n")
 				count += 1
 			
+			missed_string = ('Creation of playlist: %s successful!\n\n Failed Songs:\n%s' % (self.playlistName, str_failed_songs))
+
 			#create a new window that has the option to save to a textfile
 			self.missed_songs_window = Toplevel(root)
 			self.missed_songs_window.wm_title("Missed Songs")
+
+			# create a Frame for the Text and Scrollbar
+			txt_frm = Frame(self.missed_songs_window, width=600, height=600)
+			txt_frm.pack(fill="both", expand=True)
+			# ensure a consistent GUI size
+			txt_frm.grid_propagate(False)
+			# implement stretchability
+			txt_frm.grid_rowconfigure(0, weight=1)
+			txt_frm.grid_columnconfigure(0, weight=1)
+
+		    	# create a Text widget
+			self.txt = Text(txt_frm, borderwidth=3, relief="sunken")
+			self.txt.insert(END, missed_string)
+			self.txt.config(font=("consolas", 12), undo=True, wrap='word')
+			self.txt.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+
+		    	# create a Scrollbar and associate it with txt
+			scrollb = Scrollbar(txt_frm, command=self.txt.yview)
+			scrollb.grid(row=0, column=1, sticky='nsew')
+			self.txt['yscrollcommand'] = scrollb.set
 			
-			missed_string = ('Creation of playlist: %s successful!\n\n Failed Songs:\n%s' % (self.playlistName, str_failed_songs))
 			missed_songs_label = Label(self.missed_songs_window, text=missed_string, bg="white", anchor='w')
 			ok_button = Button(self.missed_songs_window, text="Okay", command=self.missed_songs_window.destroy)
 			self.export_missed_songs_button = Button(self.missed_songs_window, text="Export to Textfile", command=self.export_missed_songs)
 			
 			#Place the label and the buttons.
-			missed_songs_label.grid(row=0, column=1, columnspan=3)
+			#missed_songs_label.grid(row=0, column=1, columnspan=3)
 			
-			ok_button.grid(row=1, column=1)
-			self.export_missed_songs_button.grid(row=1, column=2)
+			#ok_button.grid(row=1, column=1)
+			ok_button.pack()
+			self.export_missed_songs_button.pack()
+			#self.export_missed_songs_button.grid(row=1, column=2)
 		#if failed songs exists but has no entries
 		elif test:
 			tkMessageBox.showinfo('Playlist Creation', 'Creation of playlist: %s Successful!' % (self.playlistName))
@@ -681,11 +722,14 @@ class Application(Frame):
 	def loading_window_run(self, title="Loading Bar", progress_increments=100):
 		self.loading_window = Toplevel(self, width=200, height=100)
 		self.loading_window.title(title)
+		self.loading_label = Label(self.loading_window, text='Exporting playlist...', anchor='w')
 		self.loading_bar = ttk.Progressbar(self.loading_window, orient="horizontal", maximum=100, mode="determinate")
 		self.loading_bar["maximum"] = progress_increments
 		
-		#self.loading_bar.grid(row=0, column=0, rowspan=100, columnspan=3, padx=10, pady=10)
-		self.loading_bar.pack()
+		self.loading_label.grid(row=0, column=0, padx=40, pady=20)
+		self.loading_bar.grid(row=2, column=0, padx=10, pady=10)
+		self.center_window(self.loading_window)
+		#self.loading_bar.pack()
 
 		
 		
@@ -698,6 +742,24 @@ class Application(Frame):
 			self.loading_window.destroy()
 
 
+
+
+	def center_window(self, window):
+		window.update_idletasks()
+
+		w = window.winfo_width()
+		h = window.winfo_height()
+
+		#find screen width and height
+		screen_width = window.winfo_screenwidth()
+		screen_height = window.winfo_screenheight()
+
+		size = tuple(int(_) for _ in window.geometry().split('+')[0].split('x'))
+		x = screen_width/2 - size[0]/2
+		y = screen_height/2 - size[1]/2
+
+		window.geometry("%dx%d+%d+%d" % (w, h, x, y))
+
 	
 	
 	#Updates the playlist in the viewer to match the playlist variable
@@ -709,7 +771,34 @@ class Application(Frame):
 			self.playlist_view.insert("", 'end', text=1, values=(song.songTime, song.songName, song.songArtist))
 		#print 'update playlist was called'
 	
+	def create_toolbar(self):
+		#creating toolbar
+		menubar = Menu(self.master)
+		self.master.config(menu=menubar)
+
+		#File
+		file_menu = Menu(menubar)
+		menubar.add_cascade(label="File", menu=file_menu)
+		file_menu.add_command(label="Save Playlist", command=self.export_text)
+		file_menu.add_command(label="Load Playlist", command=self.import_text)
+		file_menu.add_command(label="Exit", command=self.on_exit)
+		#Edit
+		edit_menu = Menu(menubar)
+		menubar.add_cascade(label="Edit", menu=edit_menu)
+		edit_menu.add_command(label="Add Song", command=self.add_song_option)
+		edit_menu.add_command(label="Remove Song", command=self.remove_song)
+		edit_menu.add_command(label="Clear Songs", command=self.clear_songs)
+		#Import
+		import_menu = Menu(menubar)
+		menubar.add_cascade(label="Import", menu=import_menu)
+		import_menu.add_command(label="Playlist From Website", command=self.scrape_options)
+		import_menu.add_command(label="Google Music", command=lambda: self.login_gmusic(self.import_gmusic))
 		
+		#Export
+		export_menu = Menu(menubar)
+		menubar.add_cascade(label="Export", menu=export_menu)
+		export_menu.add_command(label="Google Music", command=lambda: self.login_gmusic(self.export_gmusic))
+		#Help
 		
 	def create_widgets(self):
 		
@@ -803,15 +892,24 @@ class Application(Frame):
 		playlist.set(playlist_new)
 
 	def sort_playlist_artist(self):
-		playlist.get().sort(key=lambda song: song.songArtist)
+		try:
+			playlist.get().sort(key=lambda song: song.songArtist)
+		except:
+			pass
 		self.updatePlaylist()
 
 	def sort_playlist_name(self):
-		playlist.get().sort(key=lambda song: song.songName)
+		try:
+			playlist.get().sort(key=lambda song: song.songName)
+		except:
+			pass
 		self.updatePlaylist()
 
 	def sort_playlist_time(self):
-		playlist.get().sort(key=lambda song: timeObject(song.songTime).totalMinutes())
+		try:
+			playlist.get().sort(key=lambda song: timeObject(song.songTime).totalMinutes())
+		except:
+			pass
 		self.updatePlaylist()
 	
 
@@ -829,21 +927,24 @@ class Application(Frame):
 	
 	def __init__(self, master=None):
 		global playlist
+		self.master = master
+
+
+
 		f = Frame.__init__(self, master, height=1280, width=1920)
 		self.grid()
 		master.protocol("WM_DELETE_WINDOW", self.on_exit)
 		
-        #json file object
+        	#json file object
 		self.json_config = Config()
         
-        #load json as a dict
+        	#load json as a dict
 		self.json_config.load()
 		#print self.json_config
 		try:
 			playlist.to_playlist((self.json_config['playlist']))
 			#print playlist
 		except KeyError:
-			print "Hey"
 			pass
 		
 		#The playlist viewer
@@ -867,6 +968,9 @@ class Application(Frame):
 
 		#listbox callback for selecting multiple columns
 		self.create_widgets()
+
+		#create toolbar
+		self.create_toolbar()
 
 		self.playlist_label_name = Label(self, text="DittyGetty Playlist Viewer", font='helvetica 16')
 		self.playlist_label_name.grid(row=1, column=0, columnspan=6)
@@ -927,6 +1031,7 @@ def main():
 	root.title("DittyGetty")
 	app = Application(master=root)
 	app.mainloop()
+
 
 	#Destroys after the mainloop is finished
 	root.destroy()
