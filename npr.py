@@ -60,7 +60,7 @@ class NPR(Scraper):
 	def scrape_run(self, month=1, day=1, year=2018, start="00:00", end="23:59"):
 	
 
-		self.set_page('https://api.composer.nprstations.org/v1/widget/%s/day?date=%d-%02d-%02d&callback=jQuery17205943383084192947_1518308649099&format=jsonp&_=1518310998172' % (self._station_code, year, month, day))
+		self.set_page('http://api.composer.nprstations.org/v1/widget/%s/day?date=%d-%02d-%02d&callback=jQuery17205943383084192947_1518308649099&format=jsonp&_=1518310998172' % (self._station_code, year, month, day))
 		self.generate_page_scraper()
 
 
