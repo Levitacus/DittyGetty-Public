@@ -434,7 +434,7 @@ class Application(Frame):
 		elif site == 'Jefferson Public Radio' or site == 'JPR' or site == 'jpr':
 			self.npr_scrape('520a4969e1c85ef575dd2484')
 		
-		elif site == 'Jefferson Public Radio - Classics':
+		elif site == 'JPR - Classics':
 			self.npr_scrape('520a42b0e1c8eb30d9d7f0b7')
 
 		elif site == 'KLCC':

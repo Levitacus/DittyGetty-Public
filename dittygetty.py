@@ -162,20 +162,11 @@ def search(config, search_str, f, m):
 		config.save()
 			
 
-	
-
-@imports.command('jpr')
-@click.argument('date')
-@click.option('--t', help='Starting time for parse', default="00:00")
-@click.option('--et', help='Ending time for parse', default="23:59")
-@click.option('--f', help='File: Option to save imported songs to a file rather than the active playlist. Can use today and yesterday keywords.')
 @pass_config
-def playlist_import(config, date, t, et, f):
+def npr_func(config, date, t, et, f, station_code):
 	'''
-	Imports a playlist from JPR
-    Requires a date in the format MM-DD-YYYY, 'today' or 'yesterday' keywords
+	When given the station_code, will scrape any NPR station.
 	'''
-
 	temp_playlist = Playlist()
 	month, day, year = 0, 0, 0
 	try:
@@ -201,8 +192,10 @@ def playlist_import(config, date, t, et, f):
 			year = int(tokens[2])
 		#print t
 		#print et
-		jpr = NPR("520a4969e1c85ef575dd2484")
+		jpr = NPR(station_code)
 		temp_playlist.set(jpr.scrape_run(month, day, year, t, et))
+		click.echo('Imported ' + str((len(temp_playlist.playlist))) + ' songs.')
+		
 	except:
 		raise click.UsageError('Invalid arguments, requires DATE input "MM-DD-YYYY"')
 
@@ -227,6 +220,49 @@ def playlist_import(config, date, t, et, f):
 		config.save()
 	else:
 		print "No playlist found."
+	
+
+@imports.command('jpr')
+@click.argument('date')
+@click.option('--t', help='Starting time for parse', default="00:00")
+@click.option('--et', help='Ending time for parse', default="23:59")
+@click.option('--f', help='File: Option to save imported songs to a file rather than the active playlist. Can use today and yesterday keywords.')
+@pass_config
+def playlist_import(config, date, t, et, f):
+	'''
+	Imports a playlist from JPR
+    Requires a date in the format MM-DD-YYYY, 'today' or 'yesterday' keywords
+	'''
+	
+	jpr = npr_func(config, date, t, et, f, "520a4969e1c85ef575dd2484")
+	
+@imports.command('klcc')
+@click.argument('date')
+@click.option('--t', help='Starting time for parse', default="00:00")
+@click.option('--et', help='Ending time for parse', default="23:59")
+@click.option('--f', help='File: Option to save imported songs to a file rather than the active playlist. Can use today and yesterday keywords.')
+@pass_config
+def playlist_import(config, date, t, et, f):
+	'''
+	Imports a playlist from KKL
+    Requires a date in the format MM-DD-YYYY, 'today' or 'yesterday' keywords
+	'''
+	
+	jpr = npr_func(config, date, t, et, f, "520a4984e1c8e13a9ec5e282")
+	
+@imports.command('classics')
+@click.argument('date')
+@click.option('--t', help='Starting time for parse', default="00:00")
+@click.option('--et', help='Ending time for parse', default="23:59")
+@click.option('--f', help='File: Option to save imported songs to a file rather than the active playlist. Can use today and yesterday keywords.')
+@pass_config
+def playlist_import(config, date, t, et, f):
+	'''
+	Imports a playlist from JPR - Classics station
+    Requires a date in the format MM-DD-YYYY, 'today' or 'yesterday' keywords
+	'''
+	
+	jpr = npr_func(config, date, t, et, f, "520a42b0e1c8eb30d9d7f0b7")
 
 @imports.command('gmusic')
 @click.argument('playlist_name')
@@ -283,7 +319,6 @@ def playlist_import(config, playlist_name, f):
 		print "No playlist found."
 
 @imports.command('daily_playlist')
-#@click.option('--jpr', '-j', help='Imports a playlist from jpr requires date input "MM-DD-YYYY"')
 @click.argument('name')
 @click.option('--f', help='File: Option to save imported songs to a file rather than the active playlist. Can use today and yesterday keywords.')
 @pass_config
@@ -298,6 +333,7 @@ def playlist_import(config, name, f):
 	try:
 		dp = DailyPlaylist(name)
 		temp_playlist.set(dp.scrape_run())
+		click.echo('Imported ' + str(len(temp_playlist.playlist)) + ' songs.')
 	except:
 		raise click.UsageError('Invalid arguments, name must have no spaces')
 
@@ -449,8 +485,6 @@ def playlist_export(config, f, e, m, playlist_name):
 
 	except KeyError:
 		pass
-	#except Exception as e:
-		#raise click.ClickException('Export failed')
 		
 @entry_point.command('reset')
 @pass_config
@@ -481,7 +515,6 @@ def playlist_write_dir(config):
 
 	config['test'] = 'it works!!!'
 	config.save()
-	#click.echo('saved info')
 
 entry_point.add_command(playlist)
 
@@ -577,6 +610,7 @@ def print_loading_bar (iteration, total, length = 20, fill = '█'):
 	# Print New Line on Complete
 	if iteration >= total: 
 		print()
+		
 
 if __name__ == '__main__':
 	entry_point()
